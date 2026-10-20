@@ -1,43 +1,72 @@
 import { useState, useEffect, useRef } from 'react'
-import { Race, Round } from '../types'
+import { Tournament, TournamentRound } from '../types'
 import { updateRaceRounds, finishRace } from '../services/raceService'
 
 interface Props {
-  race: Race
+  race: Tournament
 }
 
-function formatStopwatch(ms: number) {
+// 格式化時間點 (14:30:15)
+function formatClock(ms: number | null) {
+  if (!ms) return '-'
+  return new Date(ms).toLocaleTimeString('zh-TW', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+}
+
+// 格式化經過時長 (25m 30s)
+function formatDuration(ms: number | null) {
+  if (ms === null || ms === undefined || ms < 0) return '-'
   const totalSec = Math.floor(ms / 1000)
-  const h = Math.floor(totalSec / 3600)
-  const m = Math.floor((totalSec % 3600) / 60)
+  const m = Math.floor(totalSec / 60)
   const s = totalSec % 60
-  const tenths = Math.floor((ms % 1000) / 100)
-
-  if (h > 0) {
-    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-  }
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${tenths}`
-}
-
-function formatDuration(seconds: number | null) {
-  if (seconds === null) return '--:--'
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
   return `${m}m ${String(s).padStart(2, '0')}s`
 }
 
-function formatTimestamp(ms: number | null) {
-  if (!ms) return '-'
-  return new Date(ms).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+// 格式化 EoR 差距時間 (+04m 12s / -02m 30s)
+function formatEoR(diffMs: number | null) {
+  if (diffMs === null || diffMs === undefined) return '-'
+  const totalSec = Math.round(Math.abs(diffMs) / 1000)
+  const m = Math.floor(totalSec / 60)
+  const s = totalSec % 60
+  const sign = diffMs >= 0 ? '+' : '-'
+  return `${sign}${m}m ${String(s).padStart(2, '0')}s`
+}
+
+// 大計時器倒數/正數格式化
+function formatTimerDisplay(diffMs: number) {
+  const isOvertime = diffMs < 0
+  const totalSec = Math.floor(Math.abs(diffMs) / 1000)
+  const m = Math.floor(totalSec / 60)
+  const s = totalSec % 60
+  const tenths = Math.floor((Math.abs(diffMs) % 1000) / 100)
+  return {
+    isOvertime,
+    text: `${isOvertime ? '+' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${tenths}`,
+  }
 }
 
 export default function ActiveRace({ race }: Props) {
   const [now, setNow] = useState(Date.now())
+  const [editingRoundId, setEditingRoundId] = useState<string | null>(null)
+  const [manualTimeInput, setManualTimeInput] = useState<{
+    field: 'pairingsTime' | 'startTime' | 'actualEndTime'
+    value: string
+  } | null>(null)
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const rounds = race.rounds ?? []
-  const activeRound = rounds.find((r) => r.startTime !== null && r.endTime === null) ?? null
   const isFinished = race.status === 'finished'
+
+  // 找目前進行中的輪次 (有開始時間但還沒結束)
+  const activeRound = rounds.find((r) => r.startTime !== null && r.actualEndTime === null) ?? null
+
+  // 找下一個待開始的輪次
+  const nextPendingRound = rounds.find((r) => r.startTime === null) ?? null
 
   useEffect(() => {
     timerRef.current = setInterval(() => setNow(Date.now()), 100)
@@ -46,48 +75,148 @@ export default function ActiveRace({ race }: Props) {
     }
   }, [])
 
-  // 開始新一輪
-  async function handleStartRound() {
-    const newRound: Round = {
-      roundNumber: rounds.length + 1,
-      startTime: Date.now(),
-      endTime: null,
-      duration: null,
+  // 記錄：公布配對
+  async function handleMarkPairings(roundId: string) {
+    const updated = rounds.map((r) =>
+      r.id === roundId ? { ...r, pairingsTime: Date.now() } : r
+    )
+    await updateRaceRounds(race.id, updated)
+  }
+
+  // 記錄：本輪開始 (自動推算 預計結束時間 = 開始 + 25m)
+  async function handleStartRound(roundId: string) {
+    const startTime = Date.now()
+    const updated = rounds.map((r) => {
+      if (r.id === roundId) {
+        const roundMin = r.roundMinutes || 25
+        return {
+          ...r,
+          startTime,
+          scheduledEndTime: startTime + roundMin * 60 * 1000,
+          actualEndTime: null,
+        }
+      }
+      return r
+    })
+    await updateRaceRounds(race.id, updated)
+  }
+
+  // 記錄：本輪實際結束 (EoR)
+  async function handleEndRound(roundId: string) {
+    const actualEndTime = Date.now()
+    const updated = rounds.map((r) =>
+      r.id === roundId ? { ...r, actualEndTime } : r
+    )
+    await updateRaceRounds(race.id, updated)
+  }
+
+  // 增加額外輪次 (如果臨時加賽)
+  async function handleAddExtraRound() {
+    const lastRound = rounds[rounds.length - 1]
+    const nextNum = (lastRound?.roundNumber ?? 0) + 1
+    const newRound: TournamentRound = {
+      id: `extra-${nextNum}`,
+      stage: 'swiss',
+      roundNumber: nextNum,
+      name: `R${nextNum} (加賽)`,
+      pairingsTime: null,
+      startTime: null,
+      scheduledEndTime: null,
+      actualEndTime: null,
+      roundMinutes: 25,
       note: '',
     }
     await updateRaceRounds(race.id, [...rounds, newRound])
   }
 
-  // 結束當前輪次
-  async function handleEndRound() {
-    if (!activeRound) return
-    const endTime = Date.now()
-    const duration = Math.floor((endTime - activeRound.startTime!) / 1000)
-    const updated = rounds.map((r) =>
-      r.roundNumber === activeRound.roundNumber ? { ...r, endTime, duration } : r
-    )
+  // 手動校正時間儲存
+  async function handleSaveManualTime(roundId: string) {
+    if (!manualTimeInput) return
+    const [hh, mm, ss] = manualTimeInput.value.split(':').map(Number)
+    if (isNaN(hh) || isNaN(mm)) {
+      alert('請輸入正確時間格式 (例如 14:30 或 14:30:00)')
+      return
+    }
+
+    const targetDate = new Date()
+    targetDate.setHours(hh, mm, ss || 0, 0)
+    const timestamp = targetDate.getTime()
+
+    const updated = rounds.map((r) => {
+      if (r.id === roundId) {
+        const updatedRound = { ...r, [manualTimeInput.field]: timestamp }
+        // 若改了開始時間，自動重算預計結束時間
+        if (manualTimeInput.field === 'startTime') {
+          updatedRound.scheduledEndTime = timestamp + (r.roundMinutes || 25) * 60 * 1000
+        }
+        return updatedRound
+      }
+      return r
+    })
+
     await updateRaceRounds(race.id, updated)
+    setEditingRoundId(null)
+    setManualTimeInput(null)
   }
 
-  // 結束賽事
+  // 結束比賽
   async function handleFinishRace() {
-    if (confirm('確定要結束這場賽事嗎？')) {
-      if (activeRound) await handleEndRound()
+    if (confirm('確定要結束這場賽事並封存紀錄嗎？')) {
+      if (activeRound) await handleEndRound(activeRound.id)
       await finishRace(race.id)
     }
   }
 
-  const elapsed = activeRound?.startTime ? now - activeRound.startTime : 0
-  const isOvertime = activeRound && elapsed > 50 * 60 * 1000 // MTG standard 50 min round
+  // 複製表格文字至剪貼簿 (方使貼到 Discord / LINE / Excel)
+  function handleCopyTableSummary() {
+    const lines = [
+      `【${race.name}】時間紀錄表`,
+      `日期：${race.date}`,
+      '--------------------------------------------------------------------------------',
+      '輪次\t配對公布\t開始時間\t預計結束\t實際結束\tEoR時間\t輪長\t輪間時長',
+    ]
+
+    rounds.forEach((r, idx) => {
+      const nextR = rounds[idx + 1]
+      const eor =
+        r.actualEndTime && r.scheduledEndTime ? r.actualEndTime - r.scheduledEndTime : null
+      const duration =
+        r.actualEndTime && r.startTime ? r.actualEndTime - r.startTime : null
+      const turnaround =
+        r.actualEndTime && nextR?.startTime ? nextR.startTime - r.actualEndTime : null
+
+      lines.push(
+        `${r.name}\t${formatClock(r.pairingsTime)}\t${formatClock(r.startTime)}\t${formatClock(
+          r.scheduledEndTime
+        )}\t${formatClock(r.actualEndTime)}\t${formatEoR(eor)}\t${formatDuration(
+          duration
+        )}\t${formatDuration(turnaround)}`
+      )
+    })
+
+    navigator.clipboard.writeText(lines.join('\n'))
+    alert('已複製賽事表格資料至剪貼簿！可直接貼上至 Excel 或通訊軟體。')
+  }
+
+  // 計算即時倒數
+  let remainingMs = 0
+  let isOvertime = false
+  if (activeRound?.startTime && activeRound.scheduledEndTime) {
+    remainingMs = activeRound.scheduledEndTime - now
+    isOvertime = remainingMs < 0
+  }
 
   return (
     <div className="space-y-6">
-      {/* 頂部賽事資訊條 */}
+      {/* 頂部賽事資訊橫幅 */}
       <div className="rounded-2xl bg-zinc-900/70 border border-zinc-800/90 p-5 backdrop-blur-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <h2 className="text-xl font-bold tracking-tight text-white">{race.name}</h2>
+              <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
+                寶可夢卡牌 (PTCG) • 25m/輪
+              </span>
               <span
                 className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
                   isFinished
@@ -95,205 +224,420 @@ export default function ActiveRace({ race }: Props) {
                     : 'bg-emerald-950/70 text-emerald-400 border-emerald-800/80 animate-pulse'
                 }`}
               >
-                {isFinished ? '已結案' : '● 賽事進行中'}
+                {isFinished ? '✓ 已封存' : '● 賽事進行中'}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono mt-1.5">
+
+            <div className="flex items-center gap-3 text-xs text-zinc-500 font-mono mt-2 flex-wrap">
               <span>📅 {race.date}</span>
               <span>•</span>
-              <span>目前總輪數：{rounds.length} 輪</span>
-              {rounds.length > 0 && (
-                <>
-                  <span>•</span>
-                  <span>
-                    總耗時：
-                    {formatDuration(rounds.reduce((acc, r) => acc + (r.duration ?? 0), 0))}
-                  </span>
-                </>
-              )}
+              <span>
+                賽制：瑞士輪 {race.config?.swissRoundsCount ?? rounds.length} 輪
+                {race.config?.hasTopCut ? ` + Top ${race.config.topCutSize} 複賽` : ''}
+              </span>
+              <span>•</span>
+              <span>
+                進度：{rounds.filter((r) => r.actualEndTime !== null).length} / {rounds.length} 輪完成
+              </span>
             </div>
           </div>
 
-          {!isFinished && rounds.length > 0 && !activeRound && (
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <button
-              onClick={handleFinishRace}
-              className="text-xs font-medium text-zinc-400 hover:text-rose-300 bg-zinc-950 hover:bg-rose-950/30 border border-zinc-800 hover:border-rose-900/50 px-3.5 py-2 rounded-xl transition-all self-start sm:self-auto"
+              onClick={handleCopyTableSummary}
+              title="複製表格數據"
+              className="text-xs font-medium text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-3 py-2 rounded-xl transition flex items-center gap-1.5"
             >
-              🏁 結算此賽事
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+              複製表格
             </button>
-          )}
+
+            {!isFinished && (
+              <button
+                onClick={handleFinishRace}
+                className="text-xs font-medium text-zinc-400 hover:text-rose-300 bg-zinc-950 hover:bg-rose-950/30 border border-zinc-800 hover:border-rose-900/50 px-3 py-2 rounded-xl transition"
+              >
+                🏁 結算此賽事
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* 主計時器面板 */}
-      {!isFinished && (
-        <div className="relative rounded-3xl bg-gradient-to-b from-zinc-900/80 to-zinc-950 border border-zinc-800 p-7 sm:p-9 shadow-2xl text-center overflow-hidden">
-          {/* Subtle Ambient Glow */}
+      {/* 主即時計時器看板 (當有正在進行中的輪次時顯眼呈現) */}
+      {!isFinished && activeRound && (
+        <div className="relative rounded-3xl bg-gradient-to-b from-zinc-900/90 to-zinc-950 border border-zinc-800 p-6 sm:p-8 shadow-2xl text-center overflow-hidden">
           <div
-            className={`absolute -top-24 left-1/2 -translate-x-1/2 w-80 h-32 blur-3xl pointer-events-none transition-all duration-700 ${
-              activeRound
-                ? isOvertime
-                  ? 'bg-rose-500/15'
-                  : 'bg-amber-500/15'
-                : 'bg-zinc-500/5'
+            className={`absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-36 blur-3xl pointer-events-none transition-all duration-700 ${
+              isOvertime ? 'bg-rose-500/20' : 'bg-emerald-500/15'
             }`}
           />
 
-          {activeRound ? (
-            <div className="space-y-6 relative">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-400 font-mono">
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                第 {activeRound.roundNumber} 輪進行中
-                {isOvertime && (
-                  <span className="text-rose-400 font-bold ml-1">
-                    [超過 50 分鐘 - 進入延長回合/Turns]
-                  </span>
-                )}
-              </div>
+          <div className="relative space-y-4">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs font-mono">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  isOvertime ? 'bg-rose-500 animate-ping' : 'bg-emerald-400 animate-pulse'
+                }`}
+              />
+              <span className="font-bold text-zinc-200">{activeRound.name} 正在進行中</span>
+              <span className="text-zinc-500">|</span>
+              <span className={isOvertime ? 'text-rose-400 font-bold' : 'text-zinc-400'}>
+                {isOvertime ? '⚠️ 已超時進入 EoR / 延長回合' : '常規 25 分鐘倒數'}
+              </span>
+            </div>
 
-              {/* 大計時數字 */}
-              <div>
-                <div className="text-6xl sm:text-7xl font-mono font-extrabold tracking-tight text-zinc-100 drop-shadow-[0_0_35px_rgba(255,255,255,0.08)]">
-                  {formatStopwatch(elapsed)}
-                </div>
-                <div className="text-xs text-zinc-500 font-mono mt-3 flex items-center justify-center gap-2">
-                  <span>輪次起始時間：{formatTimestamp(activeRound.startTime)}</span>
-                  <span>•</span>
-                  <span>MTG 建議輪次：50m 00s</span>
-                </div>
-              </div>
-
-              {/* 結束輪次按鈕 */}
-              <button
-                onClick={handleEndRound}
-                className="w-full max-w-sm mx-auto bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 active:scale-[0.98] text-white py-3.5 px-6 rounded-2xl font-bold text-base shadow-[0_0_25px_rgba(225,29,72,0.35)] transition-all flex items-center justify-center gap-2"
+            {/* 大數字計時器 */}
+            <div>
+              <div
+                className={`text-6xl sm:text-7xl font-mono font-extrabold tracking-tight drop-shadow-md ${
+                  isOvertime ? 'text-rose-400' : 'text-zinc-100'
+                }`}
               >
-                <div className="w-3 h-3 bg-white rounded-sm" />
-                結束第 {activeRound.roundNumber} 輪 (Time & Turns End)
+                {formatTimerDisplay(remainingMs).text}
+              </div>
+              <div className="text-xs text-zinc-500 font-mono mt-2.5 flex items-center justify-center gap-4 flex-wrap">
+                <span>配對時間：{formatClock(activeRound.pairingsTime)}</span>
+                <span>開始時間：{formatClock(activeRound.startTime)}</span>
+                <span>預計結束：{formatClock(activeRound.scheduledEndTime)}</span>
+              </div>
+            </div>
+
+            {/* 快速結束本輪按鈕 */}
+            <div className="pt-2">
+              <button
+                onClick={() => handleEndRound(activeRound.id)}
+                className="w-full max-w-sm mx-auto bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 active:scale-[0.98] text-white py-3.5 px-6 rounded-2xl font-bold text-sm sm:text-base shadow-[0_0_25px_rgba(225,29,72,0.3)] transition-all flex items-center justify-center gap-2"
+              >
+                <div className="w-3.5 h-3.5 bg-white rounded-sm" />
+                <span>記錄實際結束時間 (本輪打完 / EoR)</span>
               </button>
             </div>
-          ) : (
-            <div className="space-y-5 relative py-3">
-              <div className="text-zinc-400 text-sm font-medium">
-                {rounds.length === 0
-                  ? '賽事準備就緒，請在配對公佈後開始第 1 輪'
-                  : `第 ${rounds.length} 輪已結束，準備下一輪配對`}
-              </div>
-
-              <div className="text-4xl sm:text-5xl font-mono font-bold text-zinc-600">
-                00:00.0
-              </div>
-
-              <button
-                onClick={handleStartRound}
-                className="w-full max-w-sm mx-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-[0.98] text-zinc-950 py-3.5 px-6 rounded-2xl font-bold text-base shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-                開始第 {rounds.length + 1} 輪計時 (Round Start)
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       )}
 
-      {/* 輪次詳細紀錄 */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-            輪次歷程與換輪時間 (Round Log)
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400">
-              {rounds.length}
-            </span>
-          </h3>
+      {/* 如果沒有輪次正在進行，顯示下一輪快速開始卡片 */}
+      {!isFinished && !activeRound && nextPendingRound && (
+        <div className="rounded-2xl bg-zinc-900/60 border border-zinc-800/90 p-5 text-center space-y-4">
+          <div className="text-xs font-mono text-zinc-400">
+            上一輪已結束，準備進行下一輪
+          </div>
+          <div className="text-xl font-bold text-zinc-100">
+            下一輪：{nextPendingRound.name} (單輪 25 分鐘)
+          </div>
+
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            {!nextPendingRound.pairingsTime ? (
+              <button
+                onClick={() => handleMarkPairings(nextPendingRound.id)}
+                className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 px-4 py-2.5 rounded-xl text-xs font-semibold font-mono transition flex items-center gap-2"
+              >
+                <span>📢</span>
+                <span>公佈配對時間 (Pairings)</span>
+              </button>
+            ) : (
+              <span className="text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 px-3 py-1.5 rounded-lg">
+                ✓ 配對已公佈 ({formatClock(nextPendingRound.pairingsTime)})
+              </span>
+            )}
+
+            <button
+              onClick={() => handleStartRound(nextPendingRound.id)}
+              className="bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-zinc-950 font-bold px-6 py-2.5 rounded-xl text-sm transition shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              <span>開始 {nextPendingRound.name} 計時 (25 分鐘)</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 核心時間表格 (Table) */}
+      <div className="rounded-2xl bg-zinc-900/60 border border-zinc-800/90 overflow-hidden shadow-2xl">
+        <div className="p-4 sm:p-5 border-b border-zinc-800 flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+              <span>📊</span>
+              <span>賽事輪次時間紀錄總表</span>
+            </h3>
+            <p className="text-[11px] text-zinc-500 font-mono mt-0.5">
+              自動計算 EoR 時間 (實際-預計)、本輪時長 (實際-開始)、輪間時長 (下輪開始-本輪實際)
+            </p>
+          </div>
+
+          <button
+            onClick={handleAddExtraRound}
+            className="text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-3 py-1.5 rounded-lg transition"
+          >
+            ＋ 新增額外輪次
+          </button>
         </div>
 
-        {rounds.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-800/80 bg-zinc-950/40 p-8 text-center text-xs text-zinc-600 font-mono">
-            尚未記錄任何輪次
-          </div>
-        ) : (
-          <div className="space-y-2.5">
-            {rounds.map((round, idx) => {
-              const isRunning = round.endTime === null
-              const prevRound = idx > 0 ? rounds[idx - 1] : null
-              const turnaround =
-                prevRound?.endTime && round.startTime
-                  ? Math.floor((round.startTime - prevRound.endTime) / 1000)
-                  : null
+        {/* 響應式可滑動表格 */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs whitespace-nowrap">
+            <thead className="bg-zinc-950/80 text-zinc-400 uppercase font-mono tracking-wider border-b border-zinc-800 text-[11px]">
+              <tr>
+                <th className="py-3 px-3.5 font-semibold sticky left-0 bg-zinc-950 z-10 border-r border-zinc-800/60">
+                  輪次
+                </th>
+                <th className="py-3 px-3.5 font-semibold">配對公布時間</th>
+                <th className="py-3 px-3.5 font-semibold">開始時間</th>
+                <th className="py-3 px-3.5 font-semibold">預計結束 (+25m)</th>
+                <th className="py-3 px-3.5 font-semibold">實際結束時間</th>
+                <th className="py-3 px-3.5 font-semibold text-center bg-zinc-900/40">
+                  EoR 時間 (延遲/提早)
+                </th>
+                <th className="py-3 px-3.5 font-semibold text-center">輪長 (總時長)</th>
+                <th className="py-3 px-3.5 font-semibold text-center bg-zinc-900/40">
+                  輪間時長 (Turnaround)
+                </th>
+                <th className="py-3 px-3.5 font-semibold text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-800/60 font-mono">
+              {rounds.map((round, idx) => {
+                const isCurrentActive = round.startTime !== null && round.actualEndTime === null
+                const nextRound = rounds[idx + 1]
 
-              return (
-                <div key={round.roundNumber} className="space-y-1.5">
-                  {/* Turnaround 間隔時間提示 */}
-                  {turnaround !== null && (
-                    <div className="flex items-center justify-center gap-2 text-[11px] font-mono text-zinc-500 py-0.5">
-                      <div className="h-px bg-zinc-800/80 flex-1" />
-                      <span>換輪間隔 (Turnaround)：{formatDuration(turnaround)}</span>
-                      <div className="h-px bg-zinc-800/80 flex-1" />
-                    </div>
-                  )}
+                // 計算：
+                // 1. 預計結束時間 = 開始時間 + 25m
+                const scheduled = round.scheduledEndTime
 
-                  <div
-                    className={`rounded-2xl p-4 transition-all border ${
-                      isRunning
-                        ? 'bg-zinc-900/90 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.08)]'
-                        : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-700'
+                // 2. EoR時間 = 實際結束時間 - 預計結束時間
+                const eorDiff =
+                  round.actualEndTime && scheduled
+                    ? round.actualEndTime - scheduled
+                    : isCurrentActive && scheduled && now > scheduled
+                    ? now - scheduled
+                    : null
+
+                // 3. 輪長 = 實際結束時間 - 開始時間
+                const roundDuration =
+                  round.actualEndTime && round.startTime
+                    ? round.actualEndTime - round.startTime
+                    : isCurrentActive && round.startTime
+                    ? now - round.startTime
+                    : null
+
+                // 4. 輪間時長 = 下一輪開始時間 - 本輪實際結束時間
+                const turnaround =
+                  round.actualEndTime && nextRound?.startTime
+                    ? nextRound.startTime - round.actualEndTime
+                    : round.actualEndTime && !nextRound?.startTime && !isFinished
+                    ? now - round.actualEndTime
+                    : null
+
+                return (
+                  <tr
+                    key={round.id}
+                    className={`transition-colors hover:bg-zinc-800/30 ${
+                      isCurrentActive
+                        ? 'bg-amber-500/[0.04]'
+                        : round.actualEndTime !== null
+                        ? 'bg-zinc-900/20'
+                        : ''
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-9 h-9 rounded-xl flex items-center justify-center font-mono font-bold text-sm ${
-                            isRunning
-                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                              : 'bg-zinc-800 text-zinc-300 border border-zinc-700/50'
+                    {/* 輪次名稱 */}
+                    <td className="py-3.5 px-3.5 font-bold text-zinc-200 sticky left-0 bg-zinc-900/90 backdrop-blur-sm z-10 border-r border-zinc-800/60">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            isCurrentActive
+                              ? 'bg-amber-400 animate-ping'
+                              : round.actualEndTime !== null
+                              ? 'bg-zinc-600'
+                              : 'bg-zinc-800'
                           }`}
-                        >
-                          R{round.roundNumber}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-zinc-200 text-sm">
-                              第 {round.roundNumber} 輪
-                            </span>
-                            {isRunning && (
-                              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-950/60 text-amber-400 border border-amber-800/80 animate-pulse">
-                                計時中
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-zinc-500 font-mono mt-0.5 flex items-center gap-2">
-                            <span>起：{formatTimestamp(round.startTime)}</span>
-                            <span>→</span>
-                            <span>迄：{round.endTime ? formatTimestamp(round.endTime) : '進行中'}</span>
-                          </div>
-                        </div>
+                        />
+                        <span>{round.name}</span>
+                        {round.stage === 'topcut' && (
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-amber-950 text-amber-400 border border-amber-800/40">
+                            複賽
+                          </span>
+                        )}
                       </div>
+                    </td>
 
-                      <div className="text-right">
-                        <div
-                          className={`font-mono font-bold text-base ${
-                            isRunning
-                              ? 'text-amber-400'
-                              : (round.duration ?? 0) > 50 * 60
-                              ? 'text-rose-400'
-                              : 'text-zinc-200'
+                    {/* 配對公布時間 */}
+                    <td className="py-3.5 px-3.5">
+                      {round.pairingsTime ? (
+                        <span className="text-zinc-300">{formatClock(round.pairingsTime)}</span>
+                      ) : (
+                        <button
+                          onClick={() => handleMarkPairings(round.id)}
+                          className="text-[11px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white px-2 py-1 rounded transition"
+                        >
+                          📢 記配對
+                        </button>
+                      )}
+                    </td>
+
+                    {/* 開始時間 */}
+                    <td className="py-3.5 px-3.5">
+                      {round.startTime ? (
+                        <span className="text-zinc-200 font-semibold">
+                          {formatClock(round.startTime)}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleStartRound(round.id)}
+                          className="text-[11px] bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1 rounded transition"
+                        >
+                          🟢 開始 (25m)
+                        </button>
+                      )}
+                    </td>
+
+                    {/* 預計結束時間 (直接從開始時間+25分鐘) */}
+                    <td className="py-3.5 px-3.5 text-zinc-400">
+                      {formatClock(scheduled)}
+                    </td>
+
+                    {/* 實際結束時間 */}
+                    <td className="py-3.5 px-3.5">
+                      {round.actualEndTime ? (
+                        <span className="text-zinc-200 font-semibold">
+                          {formatClock(round.actualEndTime)}
+                        </span>
+                      ) : isCurrentActive ? (
+                        <button
+                          onClick={() => handleEndRound(round.id)}
+                          className="text-[11px] bg-rose-600 hover:bg-rose-500 text-white font-bold px-2.5 py-1 rounded animate-pulse transition"
+                        >
+                          🔴 記結束 (EoR)
+                        </button>
+                      ) : (
+                        <span className="text-zinc-600">-</span>
+                      )}
+                    </td>
+
+                    {/* EoR 時間: 計算 (實際結束時間 - 預計結束時間) */}
+                    <td className="py-3.5 px-3.5 text-center bg-zinc-900/30">
+                      {eorDiff !== null ? (
+                        <span
+                          className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                            eorDiff > 0
+                              ? 'bg-rose-950/70 text-rose-400 border border-rose-800/80'
+                              : 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/80'
                           }`}
                         >
-                          {isRunning ? formatStopwatch(elapsed) : formatDuration(round.duration)}
+                          {formatEoR(eorDiff)}
+                          {isCurrentActive && eorDiff > 0 && ' (進行中)'}
+                        </span>
+                      ) : (
+                        <span className="text-zinc-600">-</span>
+                      )}
+                    </td>
+
+                    {/* 輪長: 計算 (實際結束時間 - 開始時間) */}
+                    <td className="py-3.5 px-3.5 text-center font-semibold text-zinc-200">
+                      {roundDuration !== null ? (
+                        <span>
+                          {formatDuration(roundDuration)}
+                          {isCurrentActive && (
+                            <span className="text-[10px] text-amber-400 font-normal ml-1">
+                              (進行中)
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-zinc-600">-</span>
+                      )}
+                    </td>
+
+                    {/* 輪間時長: 下一輪的開始時間 - 實際結束時間 */}
+                    <td className="py-3.5 px-3.5 text-center bg-zinc-900/30 text-zinc-300">
+                      {idx === rounds.length - 1 ? (
+                        <span className="text-zinc-600 text-[11px]">賽事結束</span>
+                      ) : turnaround !== null ? (
+                        <span
+                          className={`font-semibold ${
+                            nextRound?.startTime ? 'text-zinc-300' : 'text-amber-400 animate-pulse'
+                          }`}
+                        >
+                          {formatDuration(turnaround)}
+                          {!nextRound?.startTime && ' (換輪中...)'}
+                        </span>
+                      ) : (
+                        <span className="text-zinc-600">-</span>
+                      )}
+                    </td>
+
+                    {/* 操作 (補登/校正) */}
+                    <td className="py-3.5 px-3.5 text-right">
+                      {editingRoundId === round.id ? (
+                        <div className="inline-flex items-center gap-1.5 bg-zinc-950 border border-zinc-700 p-1 rounded-lg">
+                          <select
+                            className="bg-zinc-900 text-zinc-200 text-[10px] rounded px-1 py-0.5 outline-none"
+                            value={manualTimeInput?.field || 'actualEndTime'}
+                            onChange={(e) =>
+                              setManualTimeInput({
+                                field: e.target.value as any,
+                                value: manualTimeInput?.value || '',
+                              })
+                            }
+                          >
+                            <option value="pairingsTime">配對</option>
+                            <option value="startTime">開始</option>
+                            <option value="actualEndTime">結束</option>
+                          </select>
+                          <input
+                            type="text"
+                            placeholder="14:30:00"
+                            className="w-16 bg-zinc-900 text-zinc-100 px-1 py-0.5 text-[10px] rounded outline-none border border-zinc-700"
+                            value={manualTimeInput?.value || ''}
+                            onChange={(e) =>
+                              setManualTimeInput({
+                                field: manualTimeInput?.field || 'actualEndTime',
+                                value: e.target.value,
+                              })
+                            }
+                          />
+                          <button
+                            onClick={() => handleSaveManualTime(round.id)}
+                            className="bg-amber-500 text-zinc-950 px-1.5 py-0.5 rounded text-[10px] font-bold"
+                          >
+                            存
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingRoundId(null)
+                              setManualTimeInput(null)
+                            }}
+                            className="text-zinc-500 hover:text-zinc-300 px-1 text-[10px]"
+                          >
+                            ✕
+                          </button>
                         </div>
-                        <div className="text-[10px] text-zinc-500 font-mono">
-                          {isRunning ? '即時時間' : '本輪總時間'}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingRoundId(round.id)
+                            setManualTimeInput({
+                              field: 'actualEndTime',
+                              value: '',
+                            })
+                          }}
+                          title="手動校正時間"
+                          className="text-[11px] text-zinc-500 hover:text-zinc-300 p-1 rounded hover:bg-zinc-800 transition"
+                        >
+                          ✎ 校正
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
