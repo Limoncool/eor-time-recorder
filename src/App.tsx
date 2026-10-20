@@ -3,6 +3,7 @@ import { Tournament } from './types'
 import RaceList from './components/RaceList'
 import ActiveRace from './components/ActiveRace'
 import { subscribeToRaces } from './services/raceService'
+import pokeballImg from '../img/pokeball.png'
 
 type View = 'list' | 'active'
 
@@ -30,16 +31,14 @@ function App() {
       {/* 頂部 Header */}
       <header className="relative border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.2)]">
-              {/* 精緻寶可夢球圖示 */}
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2a10 10 0 0 0-10 9.2h6.1a4 4 0 0 1 7.8 0H22A10 10 0 0 0 12 2z" fill="#EF4444" />
-                <path d="M12 22a10 10 0 0 0 10-9.2h-6.1a4 4 0 0 1-7.8 0H2A10 10 0 0 0 12 22z" fill="#F4F4F5" />
-                <line x1="2" y1="12" x2="22" y2="12" stroke="#18181B" strokeWidth="1.8" />
-                <circle cx="12" cy="12" r="3.2" fill="#18181B" stroke="#3F3F46" strokeWidth="1" />
-                <circle cx="12" cy="12" r="1.5" fill="#FFFFFF" />
-              </svg>
+          <div className="flex items-center space-x-3.5">
+            <div className="relative group flex items-center justify-center">
+              <div className="absolute -inset-1 bg-gradient-to-r from-red-500 to-amber-500 rounded-full blur-sm opacity-50 group-hover:opacity-85 transition duration-300"></div>
+              <img
+                src={pokeballImg}
+                alt="Pokéball"
+                className="relative w-11 h-11 object-contain drop-shadow-[0_0_14px_rgba(239,68,68,0.45)] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12 cursor-pointer"
+              />
             </div>
             <div>
               <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
@@ -57,9 +56,9 @@ function App() {
                 setView('list')
                 setActiveRaceId(null)
               }}
-              className="text-xs font-medium text-zinc-300 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 shadow-sm"
+              className="text-xs font-semibold text-zinc-300 hover:text-white bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 hover:border-zinc-600 px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,0,0,0.5)] hover:shadow-[0_0_15px_rgba(255,255,255,0.06)] active:scale-95"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               返回賽事清單

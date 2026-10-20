@@ -246,20 +246,21 @@ export default function ActiveRace({ race }: Props) {
             <button
               onClick={handleCopyTableSummary}
               title="複製表格數據"
-              className="text-xs font-medium text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-3 py-2 rounded-xl transition flex items-center gap-1.5"
+              className="group relative overflow-hidden text-xs font-semibold text-zinc-300 hover:text-white bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 hover:border-zinc-500 px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(0,0,0,0.5)] hover:shadow-[0_0_15px_rgba(255,255,255,0.08)] active:scale-95"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
               </svg>
-              複製表格
+              <span>複製表格</span>
             </button>
 
             {!isFinished && (
               <button
                 onClick={handleFinishRace}
-                className="text-xs font-medium text-zinc-400 hover:text-rose-300 bg-zinc-950 hover:bg-rose-950/30 border border-zinc-800 hover:border-rose-900/50 px-3 py-2 rounded-xl transition"
+                className="text-xs font-semibold text-rose-300 hover:text-rose-100 bg-rose-950/40 hover:bg-rose-900/50 border border-rose-800/60 hover:border-rose-600 px-3.5 py-2 rounded-xl transition-all shadow-[0_0_12px_rgba(244,63,94,0.15)] hover:shadow-[0_0_20px_rgba(244,63,94,0.3)] active:scale-95 flex items-center gap-1.5"
               >
-                🏁 結算此賽事
+                <span>🏁</span>
+                <span>結算此賽事</span>
               </button>
             )}
           </div>
@@ -305,13 +306,14 @@ export default function ActiveRace({ race }: Props) {
               </div>
             </div>
 
-            {/* 快速結束本輪按鈕 */}
+            {/* 快速結束本輪按鈕 (酷炫按鈕樣式) */}
             <div className="pt-2">
               <button
                 onClick={() => handleEndRound(activeRound.id)}
-                className="w-full max-w-sm mx-auto bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 active:scale-[0.98] text-white py-3.5 px-6 rounded-2xl font-bold text-sm sm:text-base shadow-[0_0_25px_rgba(225,29,72,0.3)] transition-all flex items-center justify-center gap-2"
+                className="relative group overflow-hidden w-full max-w-sm mx-auto bg-gradient-to-r from-rose-600 via-red-500 to-rose-600 hover:from-rose-500 hover:to-red-400 active:scale-95 text-white py-3.5 px-6 rounded-2xl font-extrabold text-sm sm:text-base shadow-[0_0_30px_rgba(225,29,72,0.4)] hover:shadow-[0_0_45px_rgba(225,29,72,0.7)] transition-all duration-300 flex items-center justify-center gap-2 border border-rose-400/50"
               >
-                <div className="w-3.5 h-3.5 bg-white rounded-sm" />
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none" />
+                <div className="w-3.5 h-3.5 bg-white rounded-xs shadow-sm" />
                 <span>記錄實際結束時間 (本輪打完 / EoR)</span>
               </button>
             </div>
@@ -333,22 +335,23 @@ export default function ActiveRace({ race }: Props) {
             {!nextPendingRound.pairingsTime ? (
               <button
                 onClick={() => handleMarkPairings(nextPendingRound.id)}
-                className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 px-4 py-2.5 rounded-xl text-xs font-semibold font-mono transition flex items-center gap-2"
+                className="group relative overflow-hidden bg-sky-950/40 hover:bg-sky-900/60 text-sky-400 hover:text-sky-200 border border-sky-700/60 hover:border-sky-400 px-4 py-2.5 rounded-xl text-xs font-semibold font-mono transition-all shadow-[0_0_12px_rgba(56,189,248,0.2)] hover:shadow-[0_0_20px_rgba(56,189,248,0.4)] active:scale-95 flex items-center gap-2"
               >
                 <span>📢</span>
                 <span>公佈配對時間 (Pairings)</span>
               </button>
             ) : (
-              <span className="text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 px-3 py-1.5 rounded-lg">
+              <span className="text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 px-3 py-1.5 rounded-lg shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                 ✓ 配對已公佈 ({formatClock(nextPendingRound.pairingsTime)})
               </span>
             )}
 
             <button
               onClick={() => handleStartRound(nextPendingRound.id)}
-              className="bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-zinc-950 font-bold px-6 py-2.5 rounded-xl text-sm transition shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-2"
+              className="relative group overflow-hidden bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 hover:from-emerald-400 hover:to-teal-300 active:scale-95 text-zinc-950 font-extrabold px-6 py-2.5 rounded-xl text-sm transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.35)] hover:shadow-[0_0_35px_rgba(16,185,129,0.6)] flex items-center gap-2 border border-emerald-300/60"
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none" />
+              <svg className="w-4 h-4 fill-zinc-950" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
               <span>開始 {nextPendingRound.name} 計時 (25 分鐘)</span>
@@ -372,9 +375,10 @@ export default function ActiveRace({ race }: Props) {
 
           <button
             onClick={handleAddExtraRound}
-            className="text-xs text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-3 py-1.5 rounded-lg transition"
+            className="text-xs font-semibold text-zinc-300 hover:text-amber-300 bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 hover:border-amber-500/50 px-3.5 py-1.5 rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
           >
-            ＋ 新增額外輪次
+            <span className="text-amber-400 font-bold">＋</span>
+            <span>新增額外輪次</span>
           </button>
         </div>
 
@@ -472,9 +476,10 @@ export default function ActiveRace({ race }: Props) {
                       ) : (
                         <button
                           onClick={() => handleMarkPairings(round.id)}
-                          className="text-[11px] bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white px-2 py-1 rounded transition"
+                          className="group relative overflow-hidden bg-sky-950/40 hover:bg-sky-900/60 text-sky-400 hover:text-sky-200 border border-sky-700/60 hover:border-sky-400 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shadow-[0_0_8px_rgba(56,189,248,0.15)] hover:shadow-[0_0_15px_rgba(56,189,248,0.35)] active:scale-95 flex items-center gap-1"
                         >
-                          📢 記配對
+                          <span>📢</span>
+                          <span>記配對</span>
                         </button>
                       )}
                     </td>
@@ -488,9 +493,10 @@ export default function ActiveRace({ race }: Props) {
                       ) : (
                         <button
                           onClick={() => handleStartRound(round.id)}
-                          className="text-[11px] bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1 rounded transition"
+                          className="group relative overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 font-extrabold px-3 py-1 rounded-lg text-[11px] transition-all shadow-[0_0_12px_rgba(16,185,129,0.3)] hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] active:scale-95 flex items-center gap-1 border border-emerald-300/50"
                         >
-                          🟢 開始 (25m)
+                          <span>▶</span>
+                          <span>開始 (25m)</span>
                         </button>
                       )}
                     </td>
@@ -509,9 +515,10 @@ export default function ActiveRace({ race }: Props) {
                       ) : isCurrentActive ? (
                         <button
                           onClick={() => handleEndRound(round.id)}
-                          className="text-[11px] bg-rose-600 hover:bg-rose-500 text-white font-bold px-2.5 py-1 rounded animate-pulse transition"
+                          className="group relative overflow-hidden bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-extrabold px-3 py-1 rounded-lg text-[11px] transition-all shadow-[0_0_15px_rgba(244,63,94,0.4)] animate-pulse active:scale-95 flex items-center gap-1 border border-rose-400/50"
                         >
-                          🔴 記結束 (EoR)
+                          <div className="w-2 h-2 bg-white rounded-xs shadow-xs" />
+                          <span>記結束 (EoR)</span>
                         </button>
                       ) : (
                         <span className="text-zinc-600">-</span>
@@ -626,7 +633,7 @@ export default function ActiveRace({ race }: Props) {
                             })
                           }}
                           title="手動校正時間"
-                          className="text-[11px] text-zinc-500 hover:text-zinc-300 p-1 rounded hover:bg-zinc-800 transition"
+                          className="text-[11px] text-zinc-400 hover:text-amber-300 bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/40 px-2.5 py-1 rounded-lg transition-all duration-200 active:scale-95 shadow-xs"
                         >
                           ✎ 校正
                         </button>
