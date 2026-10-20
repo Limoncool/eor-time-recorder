@@ -20,7 +20,7 @@ function formatDate(dateStr: string) {
 
 export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
   const [name, setName] = useState('')
-  const [swissRounds, setSwissRounds] = useState(5)
+  const [swissRounds, setSwissRounds] = useState<number>(5)
   const [hasTopCut, setHasTopCut] = useState(false)
   const [topCutSize, setTopCutSize] = useState<number>(8)
   const [creating, setCreating] = useState(false)
@@ -31,10 +31,12 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
     const today = new Date().toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' })
     const tournamentName = name.trim() || `PTCG 道館賽 (${today})`
 
+    const validRounds = Math.max(1, swissRounds || 5)
+
     const config: TournamentConfig = {
       game: 'ptcg',
       roundDurationMinutes: 25,
-      swissRoundsCount: swissRounds,
+      swissRoundsCount: validRounds,
       hasTopCut,
       topCutSize: hasTopCut ? topCutSize : 0,
     }
@@ -58,168 +60,173 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
 
   // 計算預計總輪數
   const topCutRoundCount = hasTopCut ? Math.log2(topCutSize) : 0
-  const totalRoundsEstimated = swissRounds + topCutRoundCount
+  const totalRoundsEstimated = (swissRounds || 5) + topCutRoundCount
 
   return (
     <div className="space-y-8">
       {/* 建立賽事表單 */}
       <form
         onSubmit={handleCreate}
-        className="rounded-2xl bg-zinc-900/60 border border-zinc-800/90 p-5 sm:p-6 shadow-2xl backdrop-blur-sm relative overflow-hidden space-y-5"
+        className="rounded-2xl bg-zinc-900/60 border border-zinc-800/90 p-5 shadow-2xl backdrop-blur-sm relative overflow-hidden space-y-4"
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
             <h2 className="text-sm font-bold tracking-wide text-zinc-100 uppercase">
-              建立新賽事 (PTCG 寶可夢卡牌)
+              建立新賽事
             </h2>
           </div>
-          <span className="text-xs font-mono text-amber-400/90 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-mono text-amber-400/90 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
             每輪 25 分鐘
           </span>
         </div>
 
-        {/* 賽事名稱輸入 */}
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-            賽事名稱
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="例如：新竹寶可夢道館賽、Town League、區域錦標賽"
-            className="w-full bg-zinc-950 border border-zinc-800 focus:border-amber-500/80 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition-all shadow-inner"
-          />
+        {/* 賽事名稱與輪數輸入列 */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* 賽事名稱 (佔 2 格) */}
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-medium text-zinc-400 mb-1">
+              賽事名稱
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="例如：新竹道館賽、超級球聯盟賽"
+              className="w-full bg-zinc-950 border border-zinc-800 focus:border-amber-500/80 rounded-xl px-3.5 py-2 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition-all shadow-inner"
+            />
+          </div>
+
+          {/* 瑞士輪總輪數 (用輸入的) */}
+          <div>
+            <label className="block text-xs font-medium text-zinc-400 mb-1">
+              瑞士輪輪數
+            </label>
+            <div className="flex items-center gap-1.5">
+              <input
+                type="number"
+                min="1"
+                max="30"
+                value={swissRounds}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10)
+                  setSwissRounds(isNaN(val) ? 0 : val)
+                }}
+                className="w-full bg-zinc-950 border border-zinc-800 focus:border-amber-500/80 rounded-xl px-3 py-2 text-sm text-zinc-100 font-mono font-bold outline-none transition-all shadow-inner text-center"
+              />
+              <span className="text-xs text-zinc-400 font-medium whitespace-nowrap">輪</span>
+            </div>
+          </div>
         </div>
 
-        {/* 賽制細部設定 (摺疊/開展) */}
-        <div className="rounded-xl bg-zinc-950/70 border border-zinc-800/70 p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-              <span>⚙️</span> 輪次與賽制配置
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowConfig(!showConfig)}
-              className="text-xs text-zinc-400 hover:text-zinc-200 transition underline underline-offset-4"
-            >
-              {showConfig ? '收合簡易設定' : '展開完整自訂'}
-            </button>
-          </div>
-
-          {/* 瑞士輪設定 */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-zinc-400">瑞士輪總輪數 (Swiss Rounds)：</label>
-              <span className="text-xs font-mono font-bold text-amber-400 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
-                {swissRounds} 輪
+        {/* 展開完整自訂按鈕 */}
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => setShowConfig(!showConfig)}
+            className="text-xs text-zinc-400 hover:text-amber-400 transition-colors flex items-center gap-1.5 font-medium py-1"
+          >
+            <span>{showConfig ? '▲ 收合自訂賽制' : '▼ 展開完整自訂 (單淘汰複賽等)'}</span>
+            {hasTopCut && !showConfig && (
+              <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/30">
+                Top {topCutSize}
               </span>
-            </div>
-            <div className="grid grid-cols-6 gap-1.5">
-              {[3, 4, 5, 6, 7, 8].map((num) => (
-                <button
-                  key={num}
-                  type="button"
-                  onClick={() => setSwissRounds(num)}
-                  className={`py-1.5 rounded-lg text-xs font-mono font-semibold transition ${
-                    swissRounds === num
-                      ? 'bg-amber-500 text-zinc-950 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
-                      : 'bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 hover:border-zinc-700'
-                  }`}
-                >
-                  {num} 輪
-                </button>
-              ))}
-            </div>
-          </div>
+            )}
+          </button>
+        </div>
 
-          {/* 單淘汰複賽設定 */}
-          <div className="pt-2 border-t border-zinc-800/60">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <div className="text-xs font-medium text-zinc-300">單淘汰賽複賽 (Top Cut)</div>
-                <div className="text-[11px] text-zinc-500">是否在瑞士輪後進行複賽淘汰賽</div>
-              </div>
-              <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-xl border border-zinc-800">
-                <button
-                  type="button"
-                  onClick={() => setHasTopCut(false)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-                    !hasTopCut
-                      ? 'bg-zinc-800 text-white font-semibold'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  無複賽
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setHasTopCut(true)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-                    hasTopCut
-                      ? 'bg-amber-500 text-zinc-950 font-semibold'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  有複賽
-                </button>
-              </div>
-            </div>
-
-            {hasTopCut && (
-              <div className="mt-3 pl-3 border-l-2 border-amber-500/50 space-y-2">
-                <label className="block text-[11px] text-zinc-400">複賽取幾強：</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[4, 8, 16, 32].map((size) => (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => setTopCutSize(size)}
-                      className={`py-1.5 rounded-lg text-xs font-mono font-medium transition ${
-                        topCutSize === size
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 font-bold'
-                          : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700'
-                      }`}
-                    >
-                      Top {size}
-                    </button>
-                  ))}
+        {/* 展開的自訂區塊 (根據 showConfig 顯示/隱藏) */}
+        {showConfig && (
+          <div className="rounded-xl bg-zinc-950/70 border border-zinc-800/80 p-3.5 space-y-3.5 transition-all">
+            {/* 單淘汰複賽設定 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <div className="text-xs font-medium text-zinc-300">單淘汰賽複賽 (Top Cut)</div>
+                  <div className="text-[10px] text-zinc-500">瑞士輪結束後是否進行淘汰賽</div>
+                </div>
+                <div className="flex items-center gap-1 bg-zinc-900 p-0.5 rounded-lg border border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => setHasTopCut(false)}
+                    className={`px-2.5 py-1 rounded text-xs transition ${
+                      !hasTopCut
+                        ? 'bg-zinc-800 text-white font-semibold'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    無複賽
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHasTopCut(true)}
+                    className={`px-2.5 py-1 rounded text-xs transition ${
+                      hasTopCut
+                        ? 'bg-amber-500 text-zinc-950 font-semibold'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    有複賽
+                  </button>
                 </div>
               </div>
+
+              {hasTopCut && (
+                <div className="mt-2.5 pl-3 border-l-2 border-amber-500/50 space-y-1.5">
+                  <label className="block text-[11px] text-zinc-400">複賽取幾強：</label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[4, 8, 16, 32].map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => setTopCutSize(size)}
+                        className={`py-1 rounded-lg text-xs font-mono transition ${
+                          topCutSize === size
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 font-bold'
+                            : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700'
+                        }`}
+                      >
+                        Top {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 總結資訊 */}
+            <div className="text-[11px] text-zinc-400 bg-zinc-900/60 rounded-lg px-3 py-2 font-mono flex items-center justify-between">
+              <span>預估總輪次：</span>
+              <span className="text-zinc-200 font-semibold">
+                瑞士輪 {swissRounds || 0} 輪
+                {hasTopCut ? ` + Top ${topCutSize} (${topCutRoundCount} 輪) = 共 ${totalRoundsEstimated} 輪` : ' (無複賽)'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 提交按鈕列 (精緻緊湊尺寸) */}
+        <div className="flex justify-end pt-1">
+          <button
+            type="submit"
+            disabled={creating}
+            className="bg-amber-500 hover:bg-amber-400 active:scale-[0.98] disabled:opacity-50 text-zinc-950 font-bold py-2 px-4 rounded-xl text-xs sm:text-sm transition-all shadow-[0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-1.5"
+          >
+            {creating ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" />
+                <span>建立中...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>建立賽事</span>
+              </>
             )}
-          </div>
-
-          {/* 總結資訊 */}
-          <div className="text-[11px] text-zinc-400 bg-zinc-900/50 rounded-lg p-2.5 font-mono flex items-center justify-between">
-            <span>預估賽程結構：</span>
-            <span className="text-zinc-200 font-semibold">
-              瑞士輪 {swissRounds} 輪
-              {hasTopCut ? ` + Top ${topCutSize} 複賽 (${topCutRoundCount} 輪) = 共 ${totalRoundsEstimated} 輪` : ' (純瑞士輪)'}
-            </span>
-          </div>
+          </button>
         </div>
-
-        {/* 提交按鈕 */}
-        <button
-          type="submit"
-          disabled={creating}
-          className="w-full bg-amber-500 hover:bg-amber-400 active:scale-[0.99] disabled:opacity-50 text-zinc-950 font-bold py-3 px-5 rounded-xl text-sm transition-all shadow-[0_0_20px_rgba(245,158,11,0.25)] flex items-center justify-center gap-2"
-        >
-          {creating ? (
-            <>
-              <div className="w-4 h-4 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" />
-              <span>建立賽事中...</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
-              </svg>
-              <span>建立並進入賽事時間記錄表</span>
-            </>
-          )}
-        </button>
       </form>
 
       {/* 歷史賽事列表 */}
@@ -241,7 +248,7 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
               </svg>
             </div>
             <p className="text-sm text-zinc-400 font-medium">尚無賽事紀錄</p>
-            <p className="text-xs text-zinc-600 mt-1">在上方填寫賽制資訊即可開始記錄第一場比賽！</p>
+            <p className="text-xs text-zinc-600 mt-1">在上方輸入賽事名稱並設定輪數即可開始記錄！</p>
           </div>
         ) : (
           <div className="space-y-3">

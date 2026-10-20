@@ -31,15 +31,19 @@ function App() {
       <header className="relative border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-600/30 border border-amber-500/30 flex items-center justify-center text-amber-400 font-mono font-bold text-sm shadow-[0_0_15px_rgba(245,158,11,0.15)]">
-              ⚡
+            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+              {/* 精緻寶可夢球圖示 */}
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2a10 10 0 0 0-10 9.2h6.1a4 4 0 0 1 7.8 0H22A10 10 0 0 0 12 2z" fill="#EF4444" />
+                <path d="M12 22a10 10 0 0 0 10-9.2h-6.1a4 4 0 0 1-7.8 0H2A10 10 0 0 0 12 22z" fill="#F4F4F5" />
+                <line x1="2" y1="12" x2="22" y2="12" stroke="#18181B" strokeWidth="1.8" />
+                <circle cx="12" cy="12" r="3.2" fill="#18181B" stroke="#3F3F46" strokeWidth="1" />
+                <circle cx="12" cy="12" r="1.5" fill="#FFFFFF" />
+              </svg>
             </div>
             <div>
               <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
                 EoR Time Recorder
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold">
-                  PTCG 寶可夢
-                </span>
               </h1>
               <p className="text-[11px] text-zinc-500 leading-none">
                 每輪 25 分鐘 • 輪次時間與輪間時長計時總表
