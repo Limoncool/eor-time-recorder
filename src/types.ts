@@ -16,3 +16,4 @@ export interface Race {
   createdAt: number          // Unix timestamp (ms)
   status: 'ongoing' | 'finished'
 }
+

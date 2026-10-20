@@ -54,3 +54,4 @@ export async function updateRaceRounds(raceId: string, rounds: Round[]) {
 export async function finishRace(raceId: string) {
   await updateDoc(doc(db, RACES_COLLECTION, raceId), { status: 'finished' })
 }
+
