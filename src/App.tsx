@@ -6,12 +6,24 @@ import { subscribeToRaces } from './services/raceService'
 import pokeballImg from '../img/pokeball.png'
 
 type View = 'list' | 'active'
+type BgMode = 'ambient' | 'pure'
 
 function App() {
   const [view, setView] = useState<View>('list')
   const [races, setRaces] = useState<Tournament[]>([])
   const [activeRaceId, setActiveRaceId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // 背景光暗模式切換：ambient (微光氛圍) 或 pure (純黑無光)
+  const [bgMode, setBgMode] = useState<BgMode>(() => {
+    return (localStorage.getItem('eor_bg_mode') as BgMode) || 'ambient'
+  })
+
+  function toggleBgMode() {
+    const next = bgMode === 'ambient' ? 'pure' : 'ambient'
+    setBgMode(next)
+    localStorage.setItem('eor_bg_mode', next)
+  }
 
   useEffect(() => {
     const unsubscribe = subscribeToRaces((updatedRaces) => {
@@ -25,48 +37,72 @@ function App() {
 
   return (
     <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-amber-500/20 selection:text-amber-200 relative overflow-x-hidden">
-      {/* 強化背景顯著光暈效果 */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[850px] h-[450px] bg-[radial-gradient(ellipse_at_center,rgba(245,158,11,0.22),transparent_70%)] blur-2xl" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[650px] h-[450px] bg-[radial-gradient(ellipse_at_center,rgba(239,68,68,0.16),transparent_65%)] blur-3xl" />
+      {/* 背景微光層：依據 bgMode 切換顯示 */}
+      <div
+        className={`fixed inset-0 pointer-events-none transition-opacity duration-500 ${
+          bgMode === 'ambient' ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-[radial-gradient(ellipse_at_center,rgba(245,158,11,0.15),transparent_70%)] blur-2xl" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[350px] bg-[radial-gradient(ellipse_at_center,rgba(239,68,68,0.10),transparent_65%)] blur-3xl" />
       </div>
 
       {/* 頂部 Header */}
-      <header className="relative border-b border-white/10 bg-black/80 backdrop-blur-xl sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.9)]">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-3.5">
-            <div className="relative group flex items-center justify-center">
-              <div className="absolute -inset-1.5 bg-gradient-to-r from-red-500 via-amber-500 to-rose-500 rounded-full blur-md opacity-70 group-hover:opacity-100 transition duration-300 animate-pulse"></div>
+      <header className="relative border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-4 h-15 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="relative flex items-center justify-center">
               <img
                 src={pokeballImg}
                 alt="Pokéball"
-                className="relative w-11 h-11 object-contain drop-shadow-[0_0_20px_rgba(239,68,68,0.7)] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12 cursor-pointer"
+                className="w-9 h-9 object-contain drop-shadow-[0_0_10px_rgba(239,68,68,0.4)]"
               />
             </div>
             <div>
-              <h1 className="text-base font-extrabold tracking-tight text-white flex items-center gap-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+              <h1 className="text-sm sm:text-base font-bold tracking-tight text-white flex items-center gap-2">
                 EoR Time Recorder
               </h1>
               <p className="text-[11px] text-zinc-400 font-mono leading-none mt-0.5">
-                每輪 25 分鐘 • 輪次時間與輪間時長計時總表
+                PTCG 25m • 輪次時間與輪間時長總表
               </p>
             </div>
           </div>
 
-          {view === 'active' && (
+          <div className="flex items-center gap-2">
+            {/* 背景光暗切換模式按鈕 */}
             <button
-              onClick={() => {
-                setView('list')
-                setActiveRaceId(null)
-              }}
-              className="text-xs font-bold text-zinc-200 hover:text-white bg-zinc-900/90 hover:bg-zinc-800 border border-white/10 hover:border-amber-400/50 px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(0,0,0,0.6)] hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] active:scale-95"
+              onClick={toggleBgMode}
+              title={bgMode === 'ambient' ? '切換為極致純黑底' : '切換為氛圍微光底'}
+              className="text-xs font-medium text-zinc-300 hover:text-white bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
             >
-              <svg className="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              返回賽事清單
+              {bgMode === 'ambient' ? (
+                <>
+                  <span className="text-amber-400">💡</span>
+                  <span className="hidden sm:inline">微光模式</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-zinc-400">🌙</span>
+                  <span className="hidden sm:inline">純黑模式</span>
+                </>
+              )}
             </button>
-          )}
+
+            {view === 'active' && (
+              <button
+                onClick={() => {
+                  setView('list')
+                  setActiveRaceId(null)
+                }}
+                className="text-xs font-medium text-zinc-300 hover:text-white bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+              >
+                <svg className="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                賽事列表
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
