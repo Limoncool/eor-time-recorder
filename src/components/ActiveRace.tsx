@@ -208,26 +208,28 @@ export default function ActiveRace({ race }: Props) {
   return (
     <div className="space-y-6">
       {/* 頂部賽事資訊橫幅 */}
-      <div className="rounded-xl bg-zinc-950/70 border border-zinc-800/90 p-5 shadow-sm">
+      <div className="rounded-2xl bg-white dark:bg-zinc-950/70 border border-zinc-200 dark:border-zinc-800/90 p-5 sm:p-6 shadow-sm transition-colors">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-lg font-bold tracking-tight text-white">{race.name}</h2>
-              <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-zinc-900 text-zinc-300 border border-zinc-800 font-medium">
+              <h2 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">{race.name}</h2>
+              <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 font-medium">
                 PTCG • 25m/輪
               </span>
+
+              {/* 比賽進行中 (綠色) vs 比賽已完成 (紅色) */}
               <span
-                className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border font-semibold ${
                   isFinished
-                    ? 'bg-zinc-900 text-zinc-500 border-zinc-800'
-                    : 'bg-emerald-950/60 text-emerald-400 border-emerald-800/80'
+                    ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800/80 shadow-2xs'
+                    : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800/80 shadow-2xs'
                 }`}
               >
-                {isFinished ? '✓ 已封存' : '● 賽事進行中'}
+                {isFinished ? '✓ 比賽已完成' : '● 比賽進行中'}
               </span>
             </div>
 
-            <div className="flex items-center gap-3 text-xs text-zinc-400 font-mono mt-2 flex-wrap">
+            <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 font-mono mt-2 flex-wrap">
               <span>📅 {race.date}</span>
               <span>•</span>
               <span>
@@ -241,13 +243,13 @@ export default function ActiveRace({ race }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
             <button
               onClick={handleCopyTableSummary}
               title="複製表格數據"
-              className="text-xs font-medium text-zinc-300 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+              className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 px-3.5 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 cursor-pointer flex items-center gap-1.5"
             >
-              <svg className="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
               </svg>
               <span>複製表格</span>
@@ -256,9 +258,9 @@ export default function ActiveRace({ race }: Props) {
             {!isFinished && (
               <button
                 onClick={handleFinishRace}
-                className="text-xs font-medium text-zinc-400 hover:text-rose-400 bg-zinc-900 hover:bg-rose-950/30 border border-zinc-800 hover:border-rose-900/40 px-3 py-1.5 rounded-lg transition cursor-pointer active:scale-95"
+                className="text-xs font-semibold text-zinc-600 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 bg-white hover:bg-rose-50 dark:bg-zinc-900 dark:hover:bg-rose-950/40 border border-zinc-200 hover:border-rose-300 dark:border-zinc-800 dark:hover:border-rose-800/60 px-3.5 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 cursor-pointer flex items-center gap-1.5"
               >
-                🏁 結算此賽事
+                <span>🏁 結算此賽事</span>
               </button>
             )}
           </div>
@@ -267,16 +269,17 @@ export default function ActiveRace({ race }: Props) {
 
       {/* 主即時計時器看板 */}
       {!isFinished && activeRound && (
-        <div className="rounded-xl bg-zinc-950/80 border border-zinc-800/90 p-6 sm:p-7 text-center space-y-4 shadow-sm">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-mono">
+        <div className="rounded-2xl bg-white dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800/90 p-6 sm:p-7 text-center space-y-4 shadow-sm transition-colors">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-mono shadow-2xs">
             <span
-              className={`w-2 h-2 rounded-full ${
-                isOvertime ? 'bg-rose-500 animate-ping' : 'bg-emerald-400 animate-pulse'
+              className={`w-2.5 h-2.5 rounded-full ${
+                isOvertime ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'
               }`}
             />
-            <span className="font-bold text-white">{activeRound.name} 進行中</span>
-            <span className="text-zinc-600">|</span>
-            <span className={isOvertime ? 'text-rose-400 font-bold' : 'text-zinc-400'}>
+            {/* 進行中 字樣一律綠色 */}
+            <span className="font-bold text-emerald-600 dark:text-emerald-400">{activeRound.name} 進行中</span>
+            <span className="text-zinc-300 dark:text-zinc-700">|</span>
+            <span className={isOvertime ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-zinc-600 dark:text-zinc-400'}>
               {isOvertime ? '已超時進入 EoR / 延長回合' : '常規 25 分鐘倒數'}
             </span>
           </div>
@@ -285,17 +288,17 @@ export default function ActiveRace({ race }: Props) {
           <div>
             <div
               className={`text-6xl sm:text-7xl font-mono font-bold tracking-tight ${
-                isOvertime ? 'text-rose-400' : 'text-zinc-100'
+                isOvertime ? 'text-rose-600 dark:text-rose-400' : 'text-zinc-900 dark:text-zinc-100'
               }`}
             >
               {formatTimerDisplay(remainingMs).text}
             </div>
-            <div className="text-xs text-zinc-500 font-mono mt-2.5 flex items-center justify-center gap-4 flex-wrap">
-              <span>配對時間：<strong className="text-zinc-300 font-normal">{formatClock(activeRound.pairingsTime)}</strong></span>
+            <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono mt-3 flex items-center justify-center gap-4 flex-wrap">
+              <span>配對公布：<strong className="text-zinc-800 dark:text-zinc-200 font-medium">{formatClock(activeRound.pairingsTime)}</strong></span>
               <span>•</span>
-              <span>開始時間：<strong className="text-zinc-300 font-normal">{formatClock(activeRound.startTime)}</strong></span>
+              <span>開始時間：<strong className="text-zinc-800 dark:text-zinc-200 font-medium">{formatClock(activeRound.startTime)}</strong></span>
               <span>•</span>
-              <span>預計結束：<strong className="text-zinc-300 font-normal">{formatClock(activeRound.scheduledEndTime)}</strong></span>
+              <span>預計結束：<strong className="text-zinc-800 dark:text-zinc-200 font-medium">{formatClock(activeRound.scheduledEndTime)}</strong></span>
             </div>
           </div>
 
@@ -303,7 +306,7 @@ export default function ActiveRace({ race }: Props) {
           <div className="pt-2">
             <button
               onClick={() => handleEndRound(activeRound.id)}
-              className="w-full max-w-xs mx-auto bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-5 rounded-xl text-xs sm:text-sm transition shadow-sm active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full max-w-xs mx-auto bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-bold py-2.5 px-6 rounded-xl text-xs sm:text-sm transition-all shadow-sm hover:shadow active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
             >
               <div className="w-2.5 h-2.5 bg-white rounded-xs" />
               <span>結束本輪 (EoR)</span>
@@ -314,33 +317,33 @@ export default function ActiveRace({ race }: Props) {
 
       {/* 如果沒有輪次正在進行，顯示下一輪快速開始卡片 */}
       {!isFinished && !activeRound && nextPendingRound && (
-        <div className="rounded-xl bg-zinc-950/70 border border-zinc-800/90 p-5 text-center space-y-3.5 shadow-sm">
-          <div className="text-xs font-mono text-zinc-500">
+        <div className="rounded-2xl bg-white dark:bg-zinc-950/70 border border-zinc-200 dark:border-zinc-800/90 p-6 text-center space-y-4 shadow-sm transition-colors">
+          <div className="text-xs font-mono text-zinc-500 dark:text-zinc-400">
             上一輪已結束，準備進行下一輪
           </div>
-          <div className="text-xl font-bold text-white">
+          <div className="text-xl font-bold text-zinc-900 dark:text-white">
             下一輪：{nextPendingRound.name} (單輪 25 分鐘)
           </div>
 
           <div className="flex items-center justify-center gap-3 flex-wrap pt-1">
-            {/* 配對公布 (精簡字眼) */}
+            {/* 配對公布 */}
             {!nextPendingRound.pairingsTime ? (
               <button
                 onClick={() => handleMarkPairings(nextPendingRound.id)}
-                className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 px-4 py-2 rounded-xl text-xs font-medium font-mono transition cursor-pointer active:scale-95"
+                className="bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm font-mono transition-all shadow-2xs active:scale-95 cursor-pointer flex items-center gap-1.5"
               >
                 配對公布
               </button>
             ) : (
-              <span className="text-xs font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 px-3 py-1.5 rounded-lg">
+              <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800/60 px-3.5 py-2 rounded-xl font-semibold shadow-2xs">
                 ✓ 配對已公布 ({formatClock(nextPendingRound.pairingsTime)})
               </span>
             )}
 
-            {/* {nextPendingRound.name} 開始 (簡化字眼) */}
+            {/* {nextPendingRound.name} 開始 */}
             <button
               onClick={() => handleStartRound(nextPendingRound.id)}
-              className="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold px-5 py-2 rounded-xl text-xs sm:text-sm transition shadow-sm active:scale-[0.98] flex items-center gap-1.5 cursor-pointer"
+              className="bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-zinc-950 font-bold px-6 py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-sm hover:shadow active:scale-[0.98] flex items-center gap-2 cursor-pointer"
             >
               <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
@@ -352,21 +355,21 @@ export default function ActiveRace({ race }: Props) {
       )}
 
       {/* 核心時間表格 (Table) */}
-      <div className="rounded-xl bg-zinc-950/70 border border-zinc-800/90 overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-zinc-800/90 flex items-center justify-between flex-wrap gap-2">
+      <div className="rounded-2xl bg-white dark:bg-zinc-950/70 border border-zinc-200 dark:border-zinc-800/90 overflow-hidden shadow-sm transition-colors">
+        <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800/90 flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-200 uppercase tracking-wider flex items-center gap-2">
               <span>📊</span>
               <span>賽事輪次時間紀錄總表</span>
             </h3>
-            <p className="text-[11px] text-zinc-500 font-mono mt-0.5">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-mono mt-0.5">
               EoR 時間 (實際-預計) • 輪長 (實際-開始) • 輪間時長 (下輪開始-本輪實際)
             </p>
           </div>
 
           <button
             onClick={handleAddExtraRound}
-            className="text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-3 py-1 rounded-lg transition active:scale-95 cursor-pointer"
+            className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 px-3.5 py-1.5 rounded-xl transition-all active:scale-95 cursor-pointer shadow-2xs"
           >
             ＋ 新增額外輪次
           </button>
@@ -375,28 +378,29 @@ export default function ActiveRace({ race }: Props) {
         {/* 響應式可滑動表格 */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="bg-zinc-900/60 text-zinc-400 uppercase font-mono tracking-wider border-b border-zinc-800/90 text-[11px]">
+            <thead className="bg-zinc-100/80 dark:bg-zinc-900/60 text-zinc-600 dark:text-zinc-400 uppercase font-mono tracking-wider border-b border-zinc-200 dark:border-zinc-800/90 text-[11px]">
               <tr>
-                <th className="py-3 px-3.5 font-semibold sticky left-0 bg-zinc-950 z-10 border-r border-zinc-800">
+                <th className="py-3.5 px-4 font-semibold sticky left-0 bg-white dark:bg-zinc-950 z-10 border-r border-zinc-200 dark:border-zinc-800">
                   輪次
                 </th>
-                <th className="py-3 px-3.5 font-semibold">配對公布時間</th>
-                <th className="py-3 px-3.5 font-semibold">開始時間</th>
-                <th className="py-3 px-3.5 font-semibold">預計結束 (+25m)</th>
-                <th className="py-3 px-3.5 font-semibold">實際結束時間</th>
-                <th className="py-3 px-3.5 font-semibold text-center bg-zinc-900/30">
+                <th className="py-3.5 px-4 font-semibold">配對公布時間</th>
+                <th className="py-3.5 px-4 font-semibold">開始時間</th>
+                <th className="py-3.5 px-4 font-semibold">預計結束 (+25m)</th>
+                <th className="py-3.5 px-4 font-semibold">實際結束時間</th>
+                <th className="py-3.5 px-4 font-semibold text-center bg-zinc-50/70 dark:bg-zinc-900/30">
                   EoR 時間 (延遲/提早)
                 </th>
-                <th className="py-3 px-3.5 font-semibold text-center">輪長 (總時長)</th>
-                <th className="py-3 px-3.5 font-semibold text-center bg-zinc-900/30">
+                <th className="py-3.5 px-4 font-semibold text-center">輪長 (總時長)</th>
+                <th className="py-3.5 px-4 font-semibold text-center bg-zinc-50/70 dark:bg-zinc-900/30">
                   輪間時長 (Turnaround)
                 </th>
-                <th className="py-3 px-3.5 font-semibold text-right">操作</th>
+                <th className="py-3.5 px-4 font-semibold text-right">操作</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/60 font-mono">
+            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/60 font-mono">
               {rounds.map((round, idx) => {
                 const isCurrentActive = round.startTime !== null && round.actualEndTime === null
+                const isRoundFinished = round.actualEndTime !== null
                 const nextRound = rounds[idx + 1]
 
                 const scheduled = round.scheduledEndTime
@@ -424,43 +428,54 @@ export default function ActiveRace({ race }: Props) {
                 return (
                   <tr
                     key={round.id}
-                    className={`transition-colors hover:bg-zinc-800/20 ${
+                    className={`transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/30 ${
                       isCurrentActive
-                        ? 'bg-amber-500/[0.04]'
-                        : round.actualEndTime !== null
-                        ? 'bg-zinc-900/10'
+                        ? 'bg-amber-500/[0.06] dark:bg-amber-500/[0.04]'
+                        : isRoundFinished
+                        ? 'bg-zinc-50/40 dark:bg-zinc-900/10'
                         : ''
                     }`}
                   >
-                    {/* 輪次名稱 */}
-                    <td className="py-3 px-3.5 font-bold text-zinc-200 sticky left-0 bg-zinc-950 z-10 border-r border-zinc-800">
+                    {/* 輪次名稱 + 進行中(綠色) / 已完成(紅色) 狀態 */}
+                    <td className="py-3.5 px-4 font-bold text-zinc-900 dark:text-zinc-200 sticky left-0 bg-white dark:bg-zinc-950 z-10 border-r border-zinc-200 dark:border-zinc-800">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`w-1.5 h-1.5 rounded-full ${
+                          className={`w-2 h-2 rounded-full ${
                             isCurrentActive
-                              ? 'bg-amber-400 animate-pulse'
-                              : round.actualEndTime !== null
-                              ? 'bg-zinc-600'
-                              : 'bg-zinc-800'
+                              ? 'bg-emerald-500 animate-pulse'
+                              : isRoundFinished
+                              ? 'bg-rose-500'
+                              : 'bg-zinc-300 dark:bg-zinc-700'
                           }`}
                         />
                         <span>{round.name}</span>
+                        {/* 狀態標籤：進行中(綠色) / 已完成(紅色) */}
+                        {isCurrentActive && (
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/80">
+                            進行中
+                          </span>
+                        )}
+                        {isRoundFinished && (
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-800/80">
+                            已完成
+                          </span>
+                        )}
                         {round.stage === 'topcut' && (
-                          <span className="text-[9px] px-1 py-0.2 rounded bg-amber-950 text-amber-400 border border-amber-800/40">
+                          <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800/40">
                             複賽
                           </span>
                         )}
                       </div>
                     </td>
 
-                    {/* 配對公布時間 (改為 配對公布) */}
-                    <td className="py-3 px-3.5">
+                    {/* 配對公布時間 */}
+                    <td className="py-3.5 px-4">
                       {round.pairingsTime ? (
-                        <span className="text-zinc-300">{formatClock(round.pairingsTime)}</span>
+                        <span className="text-zinc-800 dark:text-zinc-300 font-medium">{formatClock(round.pairingsTime)}</span>
                       ) : (
                         <button
                           onClick={() => handleMarkPairings(round.id)}
-                          className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700 px-2.5 py-1 rounded text-xs transition cursor-pointer active:scale-95"
+                          className="bg-sky-600 hover:bg-sky-500 text-white font-semibold px-3 py-1 rounded-lg text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
                         >
                           配對公布
                         </button>
@@ -468,15 +483,15 @@ export default function ActiveRace({ race }: Props) {
                     </td>
 
                     {/* 開始時間 */}
-                    <td className="py-3 px-3.5">
+                    <td className="py-3.5 px-4">
                       {round.startTime ? (
-                        <span className="text-zinc-200 font-semibold">
+                        <span className="text-zinc-900 dark:text-zinc-200 font-bold">
                           {formatClock(round.startTime)}
                         </span>
                       ) : (
                         <button
                           onClick={() => handleStartRound(round.id)}
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-2.5 py-1 rounded text-xs transition cursor-pointer active:scale-95"
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1 rounded-lg text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
                         >
                           開始 (25m)
                         </button>
@@ -484,86 +499,88 @@ export default function ActiveRace({ race }: Props) {
                     </td>
 
                     {/* 預計結束時間 */}
-                    <td className="py-3 px-3.5 text-zinc-400">
+                    <td className="py-3.5 px-4 text-zinc-500 dark:text-zinc-400">
                       {formatClock(scheduled)}
                     </td>
 
                     {/* 實際結束時間 */}
-                    <td className="py-3 px-3.5">
+                    <td className="py-3.5 px-4">
                       {round.actualEndTime ? (
-                        <span className="text-zinc-200 font-semibold">
+                        <span className="text-zinc-900 dark:text-zinc-200 font-bold">
                           {formatClock(round.actualEndTime)}
                         </span>
                       ) : isCurrentActive ? (
                         <button
                           onClick={() => handleEndRound(round.id)}
-                          className="bg-rose-600 hover:bg-rose-500 text-white font-semibold px-2.5 py-1 rounded text-xs transition cursor-pointer active:scale-95"
+                          className="bg-rose-600 hover:bg-rose-500 text-white font-semibold px-3 py-1 rounded-lg text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
                         >
                           結束 (EoR)
                         </button>
                       ) : (
-                        <span className="text-zinc-600">-</span>
+                        <span className="text-zinc-400 dark:text-zinc-600">-</span>
                       )}
                     </td>
 
                     {/* EoR 時間 */}
-                    <td className="py-3 px-3.5 text-center bg-zinc-900/20">
+                    <td className="py-3.5 px-4 text-center bg-zinc-50/70 dark:bg-zinc-900/30">
                       {eorDiff !== null ? (
                         <span
-                          className={`px-2 py-0.5 rounded text-[11px] font-bold inline-block ${
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-block border ${
                             eorDiff > 0
-                              ? 'bg-rose-950/60 text-rose-400 border border-rose-800/70'
-                              : 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/70'
+                              ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800/70'
+                              : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800/70'
                           }`}
                         >
                           {formatEoR(eorDiff)}
-                          {isCurrentActive && eorDiff > 0 && ' (進行中)'}
+                          {isCurrentActive && eorDiff > 0 && (
+                            <span className="text-emerald-600 dark:text-emerald-400 ml-1">(進行中)</span>
+                          )}
                         </span>
                       ) : (
-                        <span className="text-zinc-600">-</span>
+                        <span className="text-zinc-400 dark:text-zinc-600">-</span>
                       )}
                     </td>
 
                     {/* 輪長 */}
-                    <td className="py-3 px-3.5 text-center font-semibold text-zinc-200">
+                    <td className="py-3.5 px-4 text-center font-semibold text-zinc-900 dark:text-zinc-200">
                       {roundDuration !== null ? (
                         <span>
                           {formatDuration(roundDuration)}
                           {isCurrentActive && (
-                            <span className="text-[10px] text-amber-400 font-normal ml-1">
+                            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold ml-1">
                               (進行中)
                             </span>
                           )}
                         </span>
                       ) : (
-                        <span className="text-zinc-600">-</span>
+                        <span className="text-zinc-400 dark:text-zinc-600">-</span>
                       )}
                     </td>
 
                     {/* 輪間時長 */}
-                    <td className="py-3 px-3.5 text-center bg-zinc-900/20 text-zinc-300">
+                    <td className="py-3.5 px-4 text-center bg-zinc-50/70 dark:bg-zinc-900/30 text-zinc-800 dark:text-zinc-300">
                       {idx === rounds.length - 1 ? (
-                        <span className="text-zinc-600 text-[11px]">賽事結束</span>
+                        <span className="text-rose-600 dark:text-rose-400 font-bold text-[11px]">賽事已結束</span>
                       ) : turnaround !== null ? (
                         <span
                           className={`font-semibold ${
-                            nextRound?.startTime ? 'text-zinc-300' : 'text-amber-400 animate-pulse'
+                            nextRound?.startTime ? 'text-zinc-800 dark:text-zinc-300' : 'text-emerald-600 dark:text-emerald-400 animate-pulse'
                           }`}
                         >
                           {formatDuration(turnaround)}
-                          {!nextRound?.startTime && ' (換輪中...)'}
+                          {!nextRound?.startTime && ' (換輪進行中...)'}
                         </span>
                       ) : (
-                        <span className="text-zinc-600">-</span>
+                        <span className="text-zinc-400 dark:text-zinc-600">-</span>
                       )}
                     </td>
 
                     {/* 操作 (補登/校正) */}
-                    <td className="py-3 px-3.5 text-right">
+                    <td className="py-3.5 px-4 text-right">
                       {editingRoundId === round.id ? (
-                        <div className="inline-flex items-center gap-1.5 bg-zinc-950 border border-zinc-700 p-1 rounded-lg">
+                        <div className="inline-flex items-center gap-1.5 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 p-1.5 rounded-xl shadow-xs">
                           <select
-                            className="bg-zinc-900 text-zinc-200 text-[10px] rounded px-1.5 py-0.5 outline-none border border-zinc-800"
+                            className="bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-200 text-[10px] rounded px-1.5 py-0.5 outline-none border border-zinc-200 dark:border-zinc-800"
                             value={manualTimeInput?.field || 'actualEndTime'}
                             onChange={(e) =>
                               setManualTimeInput({
@@ -579,7 +596,7 @@ export default function ActiveRace({ race }: Props) {
                           <input
                             type="text"
                             placeholder="14:30:00"
-                            className="w-16 bg-zinc-900 text-zinc-100 px-1.5 py-0.5 text-[10px] rounded outline-none border border-zinc-700 font-mono"
+                            className="w-16 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 px-1.5 py-0.5 text-[10px] rounded outline-none border border-zinc-200 dark:border-zinc-700 font-mono"
                             value={manualTimeInput?.value || ''}
                             onChange={(e) =>
                               setManualTimeInput({
@@ -590,7 +607,7 @@ export default function ActiveRace({ race }: Props) {
                           />
                           <button
                             onClick={() => handleSaveManualTime(round.id)}
-                            className="bg-amber-400 hover:bg-amber-300 text-black px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer active:scale-95"
+                            className="bg-amber-400 hover:bg-amber-300 text-zinc-950 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer active:scale-95"
                           >
                             存
                           </button>
@@ -599,7 +616,7 @@ export default function ActiveRace({ race }: Props) {
                               setEditingRoundId(null)
                               setManualTimeInput(null)
                             }}
-                            className="text-zinc-500 hover:text-zinc-300 px-1 text-[10px] cursor-pointer"
+                            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 px-1 text-[10px] cursor-pointer"
                           >
                             ✕
                           </button>
@@ -614,7 +631,7 @@ export default function ActiveRace({ race }: Props) {
                             })
                           }}
                           title="手動校正時間"
-                          className="text-[11px] text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 px-2 py-0.5 rounded transition cursor-pointer active:scale-95"
+                          className="text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 px-2.5 py-1 rounded-lg transition-all cursor-pointer active:scale-95 shadow-2xs"
                         >
                           ✎ 校正
                         </button>

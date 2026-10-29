@@ -4,25 +4,41 @@
 
 @layer base {
   body {
-    background-color: #09090b;
-    color: #f4f4f5;
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  html.dark body {
+    background-color: #000000;
+    color: #f4f4f5;
+  }
+  html:not(.dark) body {
+    background-color: #f8fafc;
+    color: #0f172a;
   }
 }
 
-/* Custom sleek dark scrollbar */
+/* Custom sleek scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-::-webkit-scrollbar-track {
-  background: #09090b;
+html.dark ::-webkit-scrollbar-track {
+  background: #000000;
 }
-::-webkit-scrollbar-thumb {
+html.dark ::-webkit-scrollbar-thumb {
   background: #27272a;
   border-radius: 9999px;
 }
-::-webkit-scrollbar-thumb:hover {
+html.dark ::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
 }
-
+html:not(.dark) ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
