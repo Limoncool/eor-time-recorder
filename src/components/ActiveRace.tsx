@@ -217,15 +217,20 @@ export default function ActiveRace({ race }: Props) {
                 PTCG • 25m/輪
               </span>
 
-              {/* 比賽進行中 (綠色) vs 比賽已完成 (紅色) */}
+              {/* 狀態標籤：比賽正在進行中 (綠色字體) / 比賽已完成 (紅色字體) */}
               <span
-                className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border font-semibold ${
+                className={`inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-full border font-bold shadow-xs ${
                   isFinished
-                    ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800/80 shadow-2xs'
-                    : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800/80 shadow-2xs'
+                    ? 'bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/40'
+                    : 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/40'
                 }`}
               >
-                {isFinished ? '✓ 比賽已完成' : '● 比賽進行中'}
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isFinished ? 'bg-red-500' : 'bg-green-500 animate-pulse'
+                  }`}
+                />
+                <span>{isFinished ? '比賽已完成' : '比賽正在進行中'}</span>
               </span>
             </div>
 
@@ -273,13 +278,13 @@ export default function ActiveRace({ race }: Props) {
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-mono shadow-2xs">
             <span
               className={`w-2.5 h-2.5 rounded-full ${
-                isOvertime ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'
+                isOvertime ? 'bg-rose-500 animate-ping' : 'bg-green-500 animate-pulse'
               }`}
             />
             {/* 進行中 字樣一律綠色 */}
-            <span className="font-bold text-emerald-600 dark:text-emerald-400">{activeRound.name} 進行中</span>
+            <span className="font-bold text-green-600 dark:text-green-400">{activeRound.name} 正在進行中</span>
             <span className="text-zinc-300 dark:text-zinc-700">|</span>
-            <span className={isOvertime ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-zinc-600 dark:text-zinc-400'}>
+            <span className={isOvertime ? 'text-red-600 dark:text-red-400 font-bold' : 'text-zinc-600 dark:text-zinc-400'}>
               {isOvertime ? '已超時進入 EoR / 延長回合' : '常規 25 分鐘倒數'}
             </span>
           </div>
@@ -436,27 +441,27 @@ export default function ActiveRace({ race }: Props) {
                         : ''
                     }`}
                   >
-                    {/* 輪次名稱 + 進行中(綠色) / 已完成(紅色) 狀態 */}
+                    {/* 輪次名稱 + 進行中(綠色字體) / 已完成(紅色字體) 狀態 */}
                     <td className="py-3.5 px-4 font-bold text-zinc-900 dark:text-zinc-200 sticky left-0 bg-white dark:bg-zinc-950 z-10 border-r border-zinc-200 dark:border-zinc-800">
                       <div className="flex items-center gap-2">
                         <span
                           className={`w-2 h-2 rounded-full ${
                             isCurrentActive
-                              ? 'bg-emerald-500 animate-pulse'
+                              ? 'bg-green-500 animate-pulse'
                               : isRoundFinished
-                              ? 'bg-rose-500'
+                              ? 'bg-red-500'
                               : 'bg-zinc-300 dark:bg-zinc-700'
                           }`}
                         />
                         <span>{round.name}</span>
-                        {/* 狀態標籤：進行中(綠色) / 已完成(紅色) */}
+                        {/* 狀態標籤：正在進行中(綠色) / 已完成(紅色) */}
                         {isCurrentActive && (
-                          <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/80">
-                            進行中
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-green-500/15 text-green-600 dark:text-green-400 border border-green-500/40">
+                            正在進行中
                           </span>
                         )}
                         {isRoundFinished && (
-                          <span className="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-800/80">
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/40">
                             已完成
                           </span>
                         )}
@@ -533,7 +538,7 @@ export default function ActiveRace({ race }: Props) {
                         >
                           {formatEoR(eorDiff)}
                           {isCurrentActive && eorDiff > 0 && (
-                            <span className="text-emerald-600 dark:text-emerald-400 ml-1">(進行中)</span>
+                            <span className="text-green-600 dark:text-green-400 ml-1 font-bold">(進行中)</span>
                           )}
                         </span>
                       ) : (
@@ -547,7 +552,7 @@ export default function ActiveRace({ race }: Props) {
                         <span>
                           {formatDuration(roundDuration)}
                           {isCurrentActive && (
-                            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold ml-1">
+                            <span className="text-xs text-green-600 dark:text-green-400 font-bold ml-1">
                               (進行中)
                             </span>
                           )}
@@ -560,11 +565,11 @@ export default function ActiveRace({ race }: Props) {
                     {/* 輪間時長 */}
                     <td className="py-3.5 px-4 text-center bg-zinc-50/70 dark:bg-zinc-900/30 text-zinc-800 dark:text-zinc-300">
                       {idx === rounds.length - 1 ? (
-                        <span className="text-rose-600 dark:text-rose-400 font-bold text-[11px]">賽事已結束</span>
+                        <span className="text-red-600 dark:text-red-400 font-bold text-xs">比賽已完成</span>
                       ) : turnaround !== null ? (
                         <span
                           className={`font-semibold ${
-                            nextRound?.startTime ? 'text-zinc-800 dark:text-zinc-300' : 'text-emerald-600 dark:text-emerald-400 animate-pulse'
+                            nextRound?.startTime ? 'text-zinc-800 dark:text-zinc-300' : 'text-green-600 dark:text-green-400 font-bold animate-pulse'
                           }`}
                         >
                           {formatDuration(turnaround)}

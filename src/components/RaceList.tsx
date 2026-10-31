@@ -290,19 +290,24 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
                           {race.name}
                         </span>
 
-                        {/* 狀態標籤：進行中 (綠色) / 已完成 (紅色) */}
+                        {/* 狀態標籤：比賽正在進行中 (綠色字體) / 比賽已完成 (紅色字體) */}
                         <span
-                          className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border font-semibold ${
+                          className={`inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-full border font-bold shadow-xs ${
                             isOngoing
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800/80 shadow-2xs'
-                              : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800/80 shadow-2xs'
+                              ? 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/40'
+                              : 'bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/40'
                           }`}
                         >
-                          {isOngoing ? '● 比賽進行中' : '✓ 比賽已完成'}
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              isOngoing ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                            }`}
+                          />
+                          <span>{isOngoing ? '比賽正在進行中' : '比賽已完成'}</span>
                         </span>
 
                         {race.config?.hasTopCut && (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 font-medium">
+                          <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 font-medium">
                             Top {race.config.topCutSize}
                           </span>
                         )}
@@ -317,23 +322,23 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      {/* 精緻高質感刪除按鈕 */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* 清晰明顯的刪除按鈕 */}
                       <button
                         type="button"
                         title={`刪除「${race.name}」紀錄`}
                         onClick={(e) => handleDelete(e, race.id, race.name)}
-                        className="group/del flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-zinc-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 bg-zinc-100 hover:bg-rose-50 dark:bg-zinc-900 dark:hover:bg-rose-950/40 border border-zinc-200 hover:border-rose-300 dark:border-zinc-800 dark:hover:border-rose-800/60 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-red-600 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 border border-red-200 hover:border-red-400 dark:border-red-800 dark:hover:border-red-600 transition-all cursor-pointer shadow-xs active:scale-95"
                       >
                         <svg
-                          className="w-3.5 h-3.5 stroke-[1.8] group-hover/del:scale-110 transition-transform text-zinc-400 group-hover/del:text-rose-500"
+                          className="w-4 h-4 stroke-[2]"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        <span className="hidden sm:inline">刪除</span>
+                        <span>刪除賽事</span>
                       </button>
 
                       <div className="text-zinc-300 group-hover:text-zinc-600 dark:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors pl-1">
