@@ -217,18 +217,20 @@ export default function ActiveRace({ race }: Props) {
                 PTCG • 25m/輪
               </span>
 
-              {/* 狀態標籤：比賽正在進行中 (綠色字體) / 比賽已完成 (紅色字體) */}
+              {/* 狀態標籤：比賽正在進行中 (綠色) / 比賽已完成 (紅色) */}
               <span
-                className={`inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-full border font-bold shadow-xs ${
-                  isFinished
-                    ? 'bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/40'
-                    : 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/40'
+                className={`font-mono px-3 py-1 rounded-full text-xs font-bold ${
+                  isFinished ? 'status-badge-completed' : 'status-badge-ongoing'
                 }`}
+                style={{
+                  color: isFinished ? '#dc2626' : '#16a34a',
+                  backgroundColor: isFinished ? 'rgba(239, 68, 68, 0.16)' : 'rgba(34, 197, 94, 0.16)',
+                  borderColor: isFinished ? 'rgba(239, 68, 68, 0.45)' : 'rgba(34, 197, 94, 0.45)',
+                }}
               >
                 <span
-                  className={`w-2 h-2 rounded-full ${
-                    isFinished ? 'bg-red-500' : 'bg-green-500 animate-pulse'
-                  }`}
+                  className={`w-2.5 h-2.5 rounded-full ${!isFinished ? 'animate-pulse' : ''}`}
+                  style={{ backgroundColor: isFinished ? '#dc2626' : '#16a34a' }}
                 />
                 <span>{isFinished ? '比賽已完成' : '比賽正在進行中'}</span>
               </span>
@@ -277,14 +279,13 @@ export default function ActiveRace({ race }: Props) {
         <div className="rounded-2xl bg-white dark:bg-zinc-950/80 border border-zinc-200 dark:border-zinc-800/90 p-6 sm:p-7 text-center space-y-4 shadow-sm transition-colors">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-mono shadow-2xs">
             <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                isOvertime ? 'bg-rose-500 animate-ping' : 'bg-green-500 animate-pulse'
-              }`}
+              className={`w-2.5 h-2.5 rounded-full ${isOvertime ? 'animate-ping' : 'animate-pulse'}`}
+              style={{ backgroundColor: isOvertime ? '#dc2626' : '#16a34a' }}
             />
             {/* 進行中 字樣一律綠色 */}
-            <span className="font-bold text-green-600 dark:text-green-400">{activeRound.name} 正在進行中</span>
+            <span className="font-bold status-text-ongoing" style={{ color: '#16a34a' }}>{activeRound.name} 正在進行中</span>
             <span className="text-zinc-300 dark:text-zinc-700">|</span>
-            <span className={isOvertime ? 'text-red-600 dark:text-red-400 font-bold' : 'text-zinc-600 dark:text-zinc-400'}>
+            <span className={`font-bold ${isOvertime ? 'status-text-completed' : ''}`} style={isOvertime ? { color: '#dc2626' } : undefined}>
               {isOvertime ? '已超時進入 EoR / 延長回合' : '常規 25 分鐘倒數'}
             </span>
           </div>
@@ -441,27 +442,31 @@ export default function ActiveRace({ race }: Props) {
                         : ''
                     }`}
                   >
-                    {/* 輪次名稱 + 進行中(綠色字體) / 已完成(紅色字體) 狀態 */}
+                    {/* 輪次名稱 + 進行中(綠色) / 已完成(紅色) 狀態 — inline style 保證顏色 */}
                     <td className="py-3.5 px-4 font-bold text-zinc-900 dark:text-zinc-200 sticky left-0 bg-white dark:bg-zinc-950 z-10 border-r border-zinc-200 dark:border-zinc-800">
                       <div className="flex items-center gap-2">
-                        <span
-                          className={`w-2 h-2 rounded-full ${
-                            isCurrentActive
-                              ? 'bg-green-500 animate-pulse'
-                              : isRoundFinished
-                              ? 'bg-red-500'
-                              : 'bg-zinc-300 dark:bg-zinc-700'
-                          }`}
-                        />
+                        {isCurrentActive ? (
+                          <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: '#16a34a' }} />
+                        ) : isRoundFinished ? (
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#dc2626' }} />
+                        ) : (
+                          <span className="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                        )}
                         <span>{round.name}</span>
                         {/* 狀態標籤：正在進行中(綠色) / 已完成(紅色) */}
                         {isCurrentActive && (
-                          <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-green-500/15 text-green-600 dark:text-green-400 border border-green-500/40">
+                          <span
+                            className="text-xs px-2.5 py-0.5 rounded-full font-bold border status-badge-ongoing"
+                            style={{ color: '#16a34a', backgroundColor: 'rgba(34,197,94,0.16)', borderColor: 'rgba(34,197,94,0.45)' }}
+                          >
                             正在進行中
                           </span>
                         )}
                         {isRoundFinished && (
-                          <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/40">
+                          <span
+                            className="text-xs px-2.5 py-0.5 rounded-full font-bold border status-badge-completed"
+                            style={{ color: '#dc2626', backgroundColor: 'rgba(239,68,68,0.16)', borderColor: 'rgba(239,68,68,0.45)' }}
+                          >
                             已完成
                           </span>
                         )}
@@ -532,13 +537,18 @@ export default function ActiveRace({ race }: Props) {
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-block border ${
                             eorDiff > 0
-                              ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800/70'
-                              : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800/70'
+                              ? 'status-badge-completed'
+                              : 'status-badge-ongoing'
                           }`}
+                          style={{
+                            color: eorDiff > 0 ? '#dc2626' : '#16a34a',
+                            backgroundColor: eorDiff > 0 ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)',
+                            borderColor: eorDiff > 0 ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.4)',
+                          }}
                         >
                           {formatEoR(eorDiff)}
                           {isCurrentActive && eorDiff > 0 && (
-                            <span className="text-green-600 dark:text-green-400 ml-1 font-bold">(進行中)</span>
+                            <span className="status-text-ongoing ml-1" style={{ color: '#16a34a' }}>(進行中)</span>
                           )}
                         </span>
                       ) : (
@@ -552,7 +562,7 @@ export default function ActiveRace({ race }: Props) {
                         <span>
                           {formatDuration(roundDuration)}
                           {isCurrentActive && (
-                            <span className="text-xs text-green-600 dark:text-green-400 font-bold ml-1">
+                            <span className="text-xs ml-1 font-bold status-text-ongoing" style={{ color: '#16a34a' }}>
                               (進行中)
                             </span>
                           )}
@@ -565,12 +575,13 @@ export default function ActiveRace({ race }: Props) {
                     {/* 輪間時長 */}
                     <td className="py-3.5 px-4 text-center bg-zinc-50/70 dark:bg-zinc-900/30 text-zinc-800 dark:text-zinc-300">
                       {idx === rounds.length - 1 ? (
-                        <span className="text-red-600 dark:text-red-400 font-bold text-xs">比賽已完成</span>
+                        <span className="font-bold text-xs status-text-completed" style={{ color: '#dc2626' }}>比賽已完成</span>
                       ) : turnaround !== null ? (
                         <span
                           className={`font-semibold ${
-                            nextRound?.startTime ? 'text-zinc-800 dark:text-zinc-300' : 'text-green-600 dark:text-green-400 font-bold animate-pulse'
+                            nextRound?.startTime ? 'text-zinc-800 dark:text-zinc-300' : 'status-text-ongoing animate-pulse'
                           }`}
+                          style={!nextRound?.startTime ? { color: '#16a34a' } : undefined}
                         >
                           {formatDuration(turnaround)}
                           {!nextRound?.startTime && ' (換輪進行中...)'}

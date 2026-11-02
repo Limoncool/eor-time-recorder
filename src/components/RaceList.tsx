@@ -290,18 +290,20 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
                           {race.name}
                         </span>
 
-                        {/* 狀態標籤：比賽正在進行中 (綠色字體) / 比賽已完成 (紅色字體) */}
+                        {/* 狀態標籤：比賽正在進行中 (綠色) / 比賽已完成 (紅色) */}
                         <span
-                          className={`inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-full border font-bold shadow-xs ${
-                            isOngoing
-                              ? 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/40'
-                              : 'bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/40'
+                          className={`font-mono px-3 py-1 rounded-full text-xs font-bold ${
+                            isOngoing ? 'status-badge-ongoing' : 'status-badge-completed'
                           }`}
+                          style={{
+                            color: isOngoing ? '#16a34a' : '#dc2626',
+                            backgroundColor: isOngoing ? 'rgba(34, 197, 94, 0.16)' : 'rgba(239, 68, 68, 0.16)',
+                            borderColor: isOngoing ? 'rgba(34, 197, 94, 0.45)' : 'rgba(239, 68, 68, 0.45)',
+                          }}
                         >
                           <span
-                            className={`w-2 h-2 rounded-full ${
-                              isOngoing ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                            }`}
+                            className={`w-2 h-2 rounded-full ${isOngoing ? 'animate-pulse' : ''}`}
+                            style={{ backgroundColor: isOngoing ? '#16a34a' : '#dc2626' }}
                           />
                           <span>{isOngoing ? '比賽正在進行中' : '比賽已完成'}</span>
                         </span>
@@ -328,10 +330,10 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
                         type="button"
                         title={`刪除「${race.name}」紀錄`}
                         onClick={(e) => handleDelete(e, race.id, race.name)}
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-red-600 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 border border-red-200 hover:border-red-400 dark:border-red-800 dark:hover:border-red-600 transition-all cursor-pointer shadow-xs active:scale-95"
+                        className="btn-delete-race active:scale-95"
                       >
                         <svg
-                          className="w-4 h-4 stroke-[2]"
+                          className="w-4.5 h-4.5 stroke-[2] shrink-0"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"

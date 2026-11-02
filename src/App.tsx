@@ -70,32 +70,46 @@ function App() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* 單一光暗切換整合按鈕 (現代感精緻圖標) */}
+            {/* 單一光暗切換整合按鈕 (清晰高對比向量圖標) */}
             <button
               type="button"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               title={theme === 'dark' ? '當前為深色模式，點擊切換為淺色模式' : '當前為淺色模式，點擊切換為深色模式'}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all shadow-xs hover:shadow-sm active:scale-95 cursor-pointer text-xs font-semibold group"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all shadow-xs hover:shadow active:scale-95 cursor-pointer text-xs sm:text-sm font-bold"
             >
               {theme === 'dark' ? (
                 <>
-                  <span className="w-5 h-5 flex items-center justify-center rounded-lg bg-zinc-800 text-amber-300 border border-zinc-700/60 shadow-inner group-hover:rotate-12 transition-transform">
-                    {/* 精緻新月圖標 */}
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-                    </svg>
-                  </span>
-                  <span className="text-zinc-200">深色模式</span>
+                  {/* 精緻立體感明亮黃月亮圖示 */}
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                      fill="#facc15"
+                      stroke="#eab308"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M18 4l.5 1.2L19.7 5.7l-1.2.5L18 7.4l-.5-1.2L16.3 5.7l1.2-.5L18 4z"
+                      fill="#fef08a"
+                    />
+                  </svg>
+                  <span className="text-zinc-100">深色模式</span>
                 </>
               ) : (
                 <>
-                  <span className="w-5 h-5 flex items-center justify-center rounded-lg bg-amber-50 text-amber-500 border border-amber-200/80 shadow-inner group-hover:rotate-45 transition-transform duration-300">
-                    {/* 精緻太陽光芒圖標 */}
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="4" fill="currentColor" fillOpacity="0.2" />
-                      <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-                    </svg>
-                  </span>
+                  {/* 精緻溫暖金色太陽圖示 */}
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="4.5" fill="#f59e0b" stroke="#d97706" strokeWidth="1.5" />
+                    <g stroke="#d97706" strokeWidth="2.2" strokeLinecap="round">
+                      <line x1="12" y1="2" x2="12" y2="4" />
+                      <line x1="12" y1="20" x2="12" y2="22" />
+                      <line x1="4.93" y1="4.93" x2="6.34" y2="6.34" />
+                      <line x1="17.66" y1="17.66" x2="19.07" y2="19.07" />
+                      <line x1="2" y1="12" x2="4" y2="12" />
+                      <line x1="20" y1="12" x2="22" y2="12" />
+                      <line x1="4.93" y1="19.07" x2="6.34" y2="17.66" />
+                      <line x1="17.66" y1="6.34" x2="19.07" y2="4.93" />
+                    </g>
+                  </svg>
                   <span className="text-zinc-800">淺色模式</span>
                 </>
               )}
