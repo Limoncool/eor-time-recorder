@@ -93,7 +93,7 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="例如：新竹XXX(店名)道館賽、台北XXX(店名)超級球聯盟賽"
-              className="w-full bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-800 focus:border-amber-500 dark:focus:border-amber-400/80 focus:bg-white dark:focus:bg-zinc-900 rounded-xl px-3.5 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 outline-none transition shadow-2xs"
+              className="w-full bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-800 focus:border-amber-500 dark:focus:border-amber-400/80 focus:bg-white dark:focus:bg-zinc-900 rounded-2xl px-3.5 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 outline-none transition shadow-2xs"
             />
           </div>
 
@@ -106,7 +106,7 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
               <select
                 value={swissRounds}
                 onChange={(e) => setSwissRounds(Number(e.target.value))}
-                className="w-full appearance-none bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-800 focus:border-amber-500 dark:focus:border-amber-400/80 focus:bg-white dark:focus:bg-zinc-900 rounded-xl px-3.5 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 font-mono font-bold outline-none transition cursor-pointer pr-10 shadow-2xs"
+                className="w-full appearance-none bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-800 focus:border-amber-500 dark:focus:border-amber-400/80 focus:bg-white dark:focus:bg-zinc-900 rounded-2xl px-3.5 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 font-mono font-bold outline-none transition cursor-pointer pr-10 shadow-2xs"
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
                   <option key={num} value={num} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
@@ -123,17 +123,17 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
           </div>
         </div>
 
-        {/* 展開完整自訂按鈕 */}
+        {/* 展開完整自訂按鈕 (樣式統一) */}
         <div>
           <button
             type="button"
             onClick={() => setShowConfig(!showConfig)}
-            className="text-xs font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 flex items-center gap-1.5 transition cursor-pointer py-1"
+            className="app-btn-neutral px-3 py-1.5 rounded-xl active:scale-95 text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"
           >
-            <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{showConfig ? '▲' : '▼'}</span>
+            <span className="text-[10px]">{showConfig ? '▲' : '▼'}</span>
             <span>{showConfig ? '收合進階賽制' : '展開完整自訂 (單淘汰複賽)'}</span>
             {hasTopCut && (
-              <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 px-1.5 py-0.2 rounded-full font-bold">
+              <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 px-1.5 py-0.2 rounded-full font-bold ml-1">
                 Top {topCutSize}
               </span>
             )}
@@ -142,7 +142,7 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
 
         {/* 展開的自訂區塊 */}
         {showConfig && (
-          <div className="rounded-xl bg-zinc-50/80 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800/80 p-4 space-y-3.5 transition">
+          <div className="rounded-2xl bg-zinc-50/80 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800/80 p-4 space-y-3.5 transition">
             {/* 單淘汰複賽設定 */}
             <div>
               <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -150,14 +150,14 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
                   <div className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">單淘汰賽複賽 (Top Cut)</div>
                   <div className="text-[11px] text-zinc-500 dark:text-zinc-400">瑞士輪結束後是否進行淘汰賽晉級</div>
                 </div>
-                <div className="flex items-center gap-1 bg-zinc-200/80 dark:bg-zinc-950 p-1 rounded-xl border border-zinc-300/80 dark:border-zinc-800">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setHasTopCut(false)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 whitespace-nowrap ${
                       !hasTopCut
-                        ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold shadow-xs'
-                        : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                        ? 'app-btn-primary'
+                        : 'app-btn-neutral opacity-70 hover:opacity-100'
                     }`}
                   >
                     無複賽
@@ -165,10 +165,10 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
                   <button
                     type="button"
                     onClick={() => setHasTopCut(true)}
-                    className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 whitespace-nowrap ${
                       hasTopCut
-                        ? 'bg-amber-400 text-zinc-950 font-bold shadow-xs'
-                        : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                        ? 'app-btn-primary'
+                        : 'app-btn-neutral opacity-70 hover:opacity-100'
                     }`}
                   >
                     有複賽
@@ -176,9 +176,9 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
                 </div>
               </div>
 
-              {/* 複賽取幾強 (下拉選單) */}
+              {/* 複賽取幾強 (下拉選單，圓角卡片包覆) */}
               {hasTopCut && (
-                <div className="mt-3 pl-3 border-l-2 border-zinc-300 dark:border-zinc-700 space-y-1.5">
+                <div className="mt-3 p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100/50 dark:bg-zinc-900/50 space-y-1.5">
                   <label className="block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                     複賽取幾強 (Top Cut)：
                   </label>
@@ -186,7 +186,7 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
                     <select
                       value={topCutSize}
                       onChange={(e) => setTopCutSize(Number(e.target.value))}
-                      className="w-full appearance-none bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 focus:border-amber-500 dark:focus:border-amber-400/80 rounded-xl px-3.5 py-2 text-xs text-zinc-800 dark:text-zinc-200 font-mono outline-none cursor-pointer pr-10 shadow-2xs"
+                      className="w-full appearance-none bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 focus:border-amber-500 dark:focus:border-amber-400/80 rounded-2xl px-3.5 py-2 text-xs text-zinc-800 dark:text-zinc-200 font-mono outline-none cursor-pointer pr-10 shadow-2xs"
                     >
                       <option value={4} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Top 4 (4強賽、決賽 - 共2輪)</option>
                       <option value={8} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Top 8 (8強、4強、決賽 - 共3輪)</option>
@@ -206,7 +206,7 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
         )}
 
         {/* 預估總輪數 (常駐顯示) */}
-        <div className="flex items-center justify-between text-xs font-mono bg-zinc-100/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/80 rounded-xl px-3.5 py-2.5 flex-wrap gap-2">
+        <div className="flex items-center justify-between text-xs font-mono bg-zinc-100/70 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl px-3.5 py-2.5 flex-wrap gap-2">
           <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
             <span>預估總賽程：</span>
@@ -218,33 +218,41 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
                 <span className="text-zinc-400 dark:text-zinc-600">+</span>
                 <span className="text-amber-600 dark:text-amber-400">Top {topCutSize} 複賽 ({topCutRoundCount} 輪)</span>
                 <span className="text-zinc-400 dark:text-zinc-600">=</span>
-                <span className="text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/60 px-2 py-0.5 rounded-lg">
+                <span className="text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/60 px-2.5 py-0.5 rounded-full">
                   共 {totalRoundsEstimated} 輪
                 </span>
               </>
             ) : (
-              <span className="text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-2 py-0.5 rounded-lg">
+              <span className="text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-2.5 py-0.5 rounded-full">
                 共 {swissRounds || 0} 輪 (純瑞士輪)
               </span>
             )}
           </div>
         </div>
 
-        {/* 建立賽事按鈕 (統一精美樣式) */}
+        {/* 建立賽事按鈕 (橫向排列，統一圓角按鈕樣式) */}
         <div className="flex justify-end pt-1">
           <button
             type="submit"
             disabled={creating}
-            className="bg-amber-400 hover:bg-amber-300 active:bg-amber-500 text-zinc-950 font-bold py-2.5 px-6 rounded-xl text-xs sm:text-sm transition-all shadow-sm hover:shadow active:scale-95 disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+            className="app-btn-primary px-4 py-2 rounded-xl text-xs font-bold active:scale-95 disabled:opacity-50 inline-flex items-center gap-1.5 whitespace-nowrap"
           >
             {creating ? (
               <>
-                <div className="w-3.5 h-3.5 border-2 border-zinc-950 border-t-transparent rounded-full animate-spin" />
+                <div className="w-3.5 h-3.5 border-2 border-amber-600 dark:border-amber-400 border-t-transparent rounded-full animate-spin" />
                 <span>建立中...</span>
               </>
             ) : (
               <>
-                <svg className="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  width="14"
+                  height="14"
+                  className="w-3.5 h-3.5 stroke-[2.5]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  style={{ width: '14px', height: '14px', display: 'block' }}
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
                 <span>建立賽事</span>
@@ -325,22 +333,22 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      {/* 清晰明顯的刪除按鈕 */}
+                      {/* 清晰明顯的刪除按鈕 (純圖標極簡精巧版，手機電腦完全統一) */}
                       <button
                         type="button"
                         title={`刪除「${race.name}」紀錄`}
+                        aria-label={`刪除「${race.name}」紀錄`}
                         onClick={(e) => handleDelete(e, race.id, race.name)}
                         className="btn-delete-race active:scale-95"
                       >
                         <svg
-                          className="w-4.5 h-4.5 stroke-[2] shrink-0"
+                          className="w-3.5 h-3.5 stroke-[2] shrink-0"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        <span>刪除賽事</span>
                       </button>
 
                       <div className="text-zinc-300 group-hover:text-zinc-600 dark:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors pl-1">

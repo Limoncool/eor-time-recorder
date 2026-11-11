@@ -48,8 +48,8 @@ function App() {
         <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[350px] bg-[radial-gradient(ellipse_at_center,rgba(239,68,68,0.05),transparent_65%)] blur-3xl dark:bg-[radial-gradient(ellipse_at_center,rgba(239,68,68,0.10),transparent_65%)]" />
       </div>
 
-      {/* 頂部 Header */}
-      <header className="relative border-b border-zinc-200 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md sticky top-0 z-50 transition-colors">
+      {/* 頂部 Header (柔和圓弧底邊) */}
+      <header className="relative border-b border-zinc-200 dark:border-zinc-800/80 bg-white/85 dark:bg-zinc-950/85 backdrop-blur-md sticky top-0 z-50 transition-colors rounded-b-2xl shadow-xs">
         <div className="max-w-5xl mx-auto px-4 h-15 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="relative flex items-center justify-center">
@@ -69,49 +69,56 @@ function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            {/* 單一光暗切換整合按鈕 (清晰高對比向量圖標) */}
+          <div className="flex items-center gap-2">
+            {/* 單一光暗切換整合按鈕 (純圖標，確保固定尺寸與清晰顯示) */}
             <button
               type="button"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              title={theme === 'dark' ? '當前為深色模式，點擊切換為淺色模式' : '當前為淺色模式，點擊切換為深色模式'}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-all shadow-xs hover:shadow active:scale-95 cursor-pointer text-xs sm:text-sm font-bold"
+              title={theme === 'dark' ? '切換為淺色模式' : '切換為深色模式'}
+              aria-label={theme === 'dark' ? '切換為淺色模式' : '切換為深色模式'}
+              className="app-btn-neutral app-btn-icon rounded-xl active:scale-95"
             >
               {theme === 'dark' ? (
-                <>
-                  {/* 精緻立體感明亮黃月亮圖示 */}
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                      fill="#facc15"
-                      stroke="#eab308"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M18 4l.5 1.2L19.7 5.7l-1.2.5L18 7.4l-.5-1.2L16.3 5.7l1.2-.5L18 4z"
-                      fill="#fef08a"
-                    />
-                  </svg>
-                  <span className="text-zinc-100">深色模式</span>
-                </>
+                /* 精緻立體感明亮黃月亮圖示 (明確指定寬高，保證不被 Tailwind purge 隱藏) */
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  style={{ width: '20px', height: '20px', display: 'block', minWidth: '20px', minHeight: '20px' }}
+                >
+                  <path
+                    d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                    fill="#facc15"
+                    stroke="#eab308"
+                    strokeWidth="1.5"
+                  />
+                  <path
+                    d="M18 4l.5 1.2L19.7 5.7l-1.2.5L18 7.4l-.5-1.2L16.3 5.7l1.2-.5L18 4z"
+                    fill="#fef08a"
+                  />
+                </svg>
               ) : (
-                <>
-                  {/* 精緻溫暖金色太陽圖示 */}
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="4.5" fill="#f59e0b" stroke="#d97706" strokeWidth="1.5" />
-                    <g stroke="#d97706" strokeWidth="2.2" strokeLinecap="round">
-                      <line x1="12" y1="2" x2="12" y2="4" />
-                      <line x1="12" y1="20" x2="12" y2="22" />
-                      <line x1="4.93" y1="4.93" x2="6.34" y2="6.34" />
-                      <line x1="17.66" y1="17.66" x2="19.07" y2="19.07" />
-                      <line x1="2" y1="12" x2="4" y2="12" />
-                      <line x1="20" y1="12" x2="22" y2="12" />
-                      <line x1="4.93" y1="19.07" x2="6.34" y2="17.66" />
-                      <line x1="17.66" y1="6.34" x2="19.07" y2="4.93" />
-                    </g>
-                  </svg>
-                  <span className="text-zinc-800">淺色模式</span>
-                </>
+                /* 精緻溫暖金色太陽圖示 (明確指定寬高，保證不被 Tailwind purge 隱藏) */
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  style={{ width: '20px', height: '20px', display: 'block', minWidth: '20px', minHeight: '20px' }}
+                >
+                  <circle cx="12" cy="12" r="4.5" fill="#f59e0b" stroke="#d97706" strokeWidth="1.5" />
+                  <g stroke="#d97706" strokeWidth="2.2" strokeLinecap="round">
+                    <line x1="12" y1="2" x2="12" y2="4" />
+                    <line x1="12" y1="20" x2="12" y2="22" />
+                    <line x1="4.93" y1="4.93" x2="6.34" y2="6.34" />
+                    <line x1="17.66" y1="17.66" x2="19.07" y2="19.07" />
+                    <line x1="2" y1="12" x2="4" y2="12" />
+                    <line x1="20" y1="12" x2="22" y2="12" />
+                    <line x1="4.93" y1="19.07" x2="6.34" y2="17.66" />
+                    <line x1="17.66" y1="6.34" x2="19.07" y2="4.93" />
+                  </g>
+                </svg>
               )}
             </button>
 
@@ -121,12 +128,21 @@ function App() {
                   setView('list')
                   setActiveRaceId(null)
                 }}
-                className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                title="返回賽事列表"
+                aria-label="返回賽事列表"
+                className="app-btn-neutral px-3 py-1.5 rounded-xl active:scale-95 whitespace-nowrap"
               >
-                <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  width="14"
+                  height="14"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  style={{ width: '14px', height: '14px', display: 'block' }}
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                <span>賽事列表</span>
+                <span className="whitespace-nowrap font-bold text-xs">賽事列表</span>
               </button>
             )}
           </div>

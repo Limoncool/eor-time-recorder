@@ -250,24 +250,33 @@ export default function ActiveRace({ race }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handleCopyTableSummary}
               title="複製表格數據"
-              className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 px-3.5 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 cursor-pointer flex items-center gap-1.5"
+              className="app-btn-neutral px-3 py-1.5 rounded-xl active:scale-95 whitespace-nowrap"
             >
-              <svg className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                width="14"
+                height="14"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                style={{ width: '14px', height: '14px', display: 'block' }}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
               </svg>
-              <span>複製表格</span>
+              <span className="whitespace-nowrap font-bold text-xs">複製表格</span>
             </button>
 
             {!isFinished && (
               <button
                 onClick={handleFinishRace}
-                className="text-xs font-semibold text-zinc-600 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 bg-white hover:bg-rose-50 dark:bg-zinc-900 dark:hover:bg-rose-950/40 border border-zinc-200 hover:border-rose-300 dark:border-zinc-800 dark:hover:border-rose-800/60 px-3.5 py-1.5 rounded-xl transition-all shadow-2xs active:scale-95 cursor-pointer flex items-center gap-1.5"
+                title="結算此賽事"
+                className="app-btn-danger px-3 py-1.5 rounded-xl active:scale-95 whitespace-nowrap"
               >
-                <span>🏁 結算此賽事</span>
+                <span className="text-xs leading-none">🏁</span>
+                <span className="whitespace-nowrap font-bold text-xs">結算此賽事</span>
               </button>
             )}
           </div>
@@ -308,14 +317,13 @@ export default function ActiveRace({ race }: Props) {
             </div>
           </div>
 
-          {/* 快速結束本輪按鈕 */}
+          {/* 快速結束本輪按鈕 (統一風格，手機電腦一致) */}
           <div className="pt-2">
             <button
               onClick={() => handleEndRound(activeRound.id)}
-              className="w-full max-w-xs mx-auto bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-bold py-2.5 px-6 rounded-xl text-xs sm:text-sm transition-all shadow-sm hover:shadow active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+              className="app-btn-danger px-6 py-2 rounded-xl text-xs font-bold active:scale-95"
             >
-              <div className="w-2.5 h-2.5 bg-white rounded-xs" />
-              <span>結束本輪 (EoR)</span>
+              結束本輪 (EoR)
             </button>
           </div>
         </div>
@@ -336,25 +344,22 @@ export default function ActiveRace({ race }: Props) {
             {!nextPendingRound.pairingsTime ? (
               <button
                 onClick={() => handleMarkPairings(nextPendingRound.id)}
-                className="bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm font-mono transition-all shadow-2xs active:scale-95 cursor-pointer flex items-center gap-1.5"
+                className="app-btn-info px-4 py-2 rounded-xl text-xs font-bold active:scale-95"
               >
                 配對公布
               </button>
             ) : (
-              <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800/60 px-3.5 py-2 rounded-xl font-semibold shadow-2xs">
+              <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800/60 px-3.5 py-1.5 rounded-xl font-semibold shadow-2xs">
                 ✓ 配對已公布 ({formatClock(nextPendingRound.pairingsTime)})
               </span>
             )}
 
-            {/* {nextPendingRound.name} 開始 */}
+            {/* {nextPendingRound.name} 開始 (無多餘圖標，純文字按鈕) */}
             <button
               onClick={() => handleStartRound(nextPendingRound.id)}
-              className="bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-zinc-950 font-bold px-6 py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-sm hover:shadow active:scale-[0.98] flex items-center gap-2 cursor-pointer"
+              className="app-btn-success px-5 py-2 rounded-xl text-xs font-bold active:scale-95"
             >
-              <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-              <span>{nextPendingRound.name} 開始</span>
+              {nextPendingRound.name} 開始
             </button>
           </div>
         </div>
@@ -375,9 +380,22 @@ export default function ActiveRace({ race }: Props) {
 
           <button
             onClick={handleAddExtraRound}
-            className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white bg-white hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 px-3.5 py-1.5 rounded-xl transition-all active:scale-95 cursor-pointer shadow-2xs"
+            title="新增額外輪次"
+            aria-label="新增額外輪次"
+            className="app-btn-neutral px-3 py-1.5 rounded-xl active:scale-95 whitespace-nowrap inline-flex items-center gap-1.5 text-xs font-bold"
           >
-            ＋ 新增額外輪次
+            <svg
+              width="14"
+              height="14"
+              className="w-3.5 h-3.5 stroke-[2.5]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              style={{ width: '14px', height: '14px', display: 'block' }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>新增額外輪次</span>
           </button>
         </div>
 
@@ -485,7 +503,7 @@ export default function ActiveRace({ race }: Props) {
                       ) : (
                         <button
                           onClick={() => handleMarkPairings(round.id)}
-                          className="bg-sky-600 hover:bg-sky-500 text-white font-semibold px-3 py-1 rounded-lg text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
+                          className="app-btn-info active:scale-95"
                         >
                           配對公布
                         </button>
@@ -501,7 +519,7 @@ export default function ActiveRace({ race }: Props) {
                       ) : (
                         <button
                           onClick={() => handleStartRound(round.id)}
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1 rounded-lg text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
+                          className="app-btn-success active:scale-95"
                         >
                           開始 (25m)
                         </button>
@@ -522,7 +540,7 @@ export default function ActiveRace({ race }: Props) {
                       ) : isCurrentActive ? (
                         <button
                           onClick={() => handleEndRound(round.id)}
-                          className="bg-rose-600 hover:bg-rose-500 text-white font-semibold px-3 py-1 rounded-lg text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
+                          className="app-btn-danger active:scale-95"
                         >
                           結束 (EoR)
                         </button>
@@ -596,7 +614,7 @@ export default function ActiveRace({ race }: Props) {
                       {editingRoundId === round.id ? (
                         <div className="inline-flex items-center gap-1.5 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 p-1.5 rounded-xl shadow-xs">
                           <select
-                            className="bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-200 text-[10px] rounded px-1.5 py-0.5 outline-none border border-zinc-200 dark:border-zinc-800"
+                            className="bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-200 text-xs rounded-lg px-2 py-1 outline-none border border-zinc-200 dark:border-zinc-800"
                             value={manualTimeInput?.field || 'actualEndTime'}
                             onChange={(e) =>
                               setManualTimeInput({
@@ -612,7 +630,7 @@ export default function ActiveRace({ race }: Props) {
                           <input
                             type="text"
                             placeholder="14:30:00"
-                            className="w-16 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 px-1.5 py-0.5 text-[10px] rounded outline-none border border-zinc-200 dark:border-zinc-700 font-mono"
+                            className="w-20 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 px-2 py-1 text-xs rounded-lg outline-none border border-zinc-200 dark:border-zinc-700 font-mono"
                             value={manualTimeInput?.value || ''}
                             onChange={(e) =>
                               setManualTimeInput({
@@ -623,7 +641,7 @@ export default function ActiveRace({ race }: Props) {
                           />
                           <button
                             onClick={() => handleSaveManualTime(round.id)}
-                            className="bg-amber-400 hover:bg-amber-300 text-zinc-950 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer active:scale-95"
+                            className="app-btn-primary rounded-lg text-xs px-2.5 py-1 active:scale-95"
                           >
                             存
                           </button>
@@ -632,7 +650,7 @@ export default function ActiveRace({ race }: Props) {
                               setEditingRoundId(null)
                               setManualTimeInput(null)
                             }}
-                            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 px-1 text-[10px] cursor-pointer"
+                            className="app-btn-neutral rounded-lg text-xs px-2 py-1 active:scale-95"
                           >
                             ✕
                           </button>
@@ -647,9 +665,21 @@ export default function ActiveRace({ race }: Props) {
                             })
                           }}
                           title="手動校正時間"
-                          className="text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 px-2.5 py-1 rounded-lg transition-all cursor-pointer active:scale-95 shadow-2xs"
+                          aria-label="手動校正時間"
+                          className="app-btn-neutral px-2.5 py-1 rounded-xl active:scale-95 whitespace-nowrap inline-flex items-center gap-1 text-xs font-bold"
                         >
-                          ✎ 校正
+                          <svg
+                            width="14"
+                            height="14"
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            style={{ width: '14px', height: '14px', display: 'block' }}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          <span>校正</span>
                         </button>
                       )}
                     </td>
