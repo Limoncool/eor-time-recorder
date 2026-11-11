@@ -6,6 +6,9 @@ interface Props {
   races: Tournament[]
   onSelectRace: (id: string) => void
   onNewRace: (id: string) => void
+  currentUser?: { uid: string; email?: string | null; displayName?: string | null } | null
+  isAdmin?: boolean
+  onOpenAuth?: () => void
 }
 
 function formatDate(dateStr: string) {
@@ -18,7 +21,14 @@ function formatDate(dateStr: string) {
   }
 }
 
-export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
+export default function RaceList({
+  races,
+  onSelectRace,
+  onNewRace,
+  currentUser,
+  isAdmin,
+  onOpenAuth,
+}: Props) {
   const [name, setName] = useState('')
   const [swissRounds, setSwissRounds] = useState<number>(5)
   const [hasTopCut, setHasTopCut] = useState(false)
@@ -43,7 +53,7 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
 
     setCreating(true)
     try {
-      const id = await createTournament(tournamentName, config)
+      const id = await createTournament(tournamentName, config, currentUser)
       setName('')
       onNewRace(id)
     } finally {
@@ -64,6 +74,25 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* 未登入提醒橫幅 */}
+      {!currentUser && (
+        <div className="rounded-2xl border border-amber-300/80 dark:border-amber-500/40 bg-amber-50/80 dark:bg-amber-950/30 p-4 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2.5">
+            <span className="text-base">🔐</span>
+            <div className="text-xs text-amber-800 dark:text-amber-200">
+              <strong className="font-bold">隱私模式提醒：</strong>您目前尚未登入。登入後建立的賽事僅您本人與管理員看得到。
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenAuth}
+            className="app-btn-primary px-3.5 py-1.5 rounded-xl text-xs font-bold active:scale-95 whitespace-nowrap"
+          >
+            登入 / 註冊帳號
+          </button>
+        </div>
+      )}
+
       {/* 建立賽事表單 */}
       <form
         onSubmit={handleCreate}
@@ -270,6 +299,11 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
             <span className="text-[11px] font-mono px-2 py-0.2 rounded-full bg-zinc-200/80 dark:bg-zinc-900 border border-zinc-300/80 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 font-medium">
               {races.length}
             </span>
+            {isAdmin && (
+              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-500 text-black uppercase tracking-wider">
+                管理員全視角
+              </span>
+            )}
           </h2>
         </div>
 
@@ -329,6 +363,11 @@ export default function RaceList({ races, onSelectRace, onNewRace }: Props) {
                           ⚔️ 輪次：{finishedRounds} / {totalRounds} 完成
                         </span>
                         <span>⏱ 單輪 25m</span>
+                        {(race.creatorName || race.creatorEmail) && (
+                          <span className="text-zinc-600 dark:text-zinc-400">
+                            👤 {race.creatorName || race.creatorEmail}
+                          </span>
+                        )}
                       </div>
                     </div>
 

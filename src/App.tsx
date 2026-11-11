@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
+import { User } from 'firebase/auth'
 import { Tournament } from './types'
 import RaceList from './components/RaceList'
 import ActiveRace from './components/ActiveRace'
+import AuthModal from './components/AuthModal'
 import { subscribeToRaces } from './services/raceService'
+import { subscribeToAuth, isUserAdmin, logout } from './services/authService'
 import pokeballImg from '../img/pokeball.png'
 
 type View = 'list' | 'active'
@@ -13,6 +16,11 @@ function App() {
   const [races, setRaces] = useState<Tournament[]>([])
   const [activeRaceId, setActiveRaceId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // 使用者驗證狀態
+  const [user, setUser] = useState<User | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
   // 背景光暗主題切換 (真正切換 html.dark class)
   const [theme, setTheme] = useState<Theme>(() => {
@@ -30,13 +38,26 @@ function App() {
     localStorage.setItem('eor_theme', theme)
   }, [theme])
 
+  // 監聽 Firebase 登入狀態
   useEffect(() => {
-    const unsubscribe = subscribeToRaces((updatedRaces) => {
+    const unsubscribeAuth = subscribeToAuth((authUser) => {
+      setUser(authUser)
+      setAuthLoading(false)
+    })
+    return () => unsubscribeAuth()
+  }, [])
+
+  // 根據當前使用者權限訂閱賽事 (管理員看全部，一般使用者只看自己的)
+  useEffect(() => {
+    if (authLoading) return
+    setLoading(true)
+    const isAdmin = isUserAdmin(user)
+    const unsubscribeRaces = subscribeToRaces(user, isAdmin, (updatedRaces) => {
       setRaces(updatedRaces)
       setLoading(false)
     })
-    return () => unsubscribe()
-  }, [])
+    return () => unsubscribeRaces()
+  }, [user, authLoading])
 
   const activeRace = races.find((r) => r.id === activeRaceId) ?? null
 
@@ -145,6 +166,41 @@ function App() {
                 <span className="whitespace-nowrap font-bold text-xs">賽事列表</span>
               </button>
             )}
+
+            {/* 帳號登入 / 狀態顯示區塊 */}
+            {authLoading ? (
+              <div className="w-5 h-5 border-2 border-zinc-400 border-t-amber-500 rounded-full animate-spin" />
+            ) : user ? (
+              <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 py-1 px-2.5 rounded-xl">
+                {isUserAdmin(user) && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-500 text-black uppercase tracking-wider">
+                    管理員
+                  </span>
+                )}
+                <span
+                  className="text-xs font-medium text-zinc-700 dark:text-zinc-300 max-w-[120px] truncate"
+                  title={user.email || ''}
+                >
+                  {user.displayName || user.email?.split('@')[0]}
+                </span>
+                <button
+                  type="button"
+                  onClick={logout}
+                  title="登出帳號"
+                  className="text-xs text-zinc-400 hover:text-red-500 dark:hover:text-red-400 font-bold ml-1 transition cursor-pointer"
+                >
+                  登出
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsAuthModalOpen(true)}
+                className="app-btn-primary px-3 py-1.5 rounded-xl active:scale-95 whitespace-nowrap text-xs font-bold inline-flex items-center gap-1.5"
+              >
+                <span>登入 / 註冊</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -159,6 +215,9 @@ function App() {
         ) : view === 'list' ? (
           <RaceList
             races={races}
+            currentUser={user}
+            isAdmin={isUserAdmin(user)}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
             onSelectRace={(id) => {
               setActiveRaceId(id)
               setView('active')
@@ -172,6 +231,12 @@ function App() {
           <ActiveRace race={activeRace} />
         ) : null}
       </main>
+
+      {/* 登入 / 註冊彈窗 */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
     </div>
   )
 }

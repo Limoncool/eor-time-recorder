@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Tournament, TournamentRound } from '../types'
-import { updateRaceRounds, finishRace } from '../services/raceService'
+import { updateRaceRounds, finishRace, computeAutoSchedule } from '../services/raceService'
 
 interface Props {
   race: Tournament
@@ -53,7 +53,12 @@ export default function ActiveRace({ race }: Props) {
   const [now, setNow] = useState(Date.now())
   const [editingRoundId, setEditingRoundId] = useState<string | null>(null)
   const [manualTimeInput, setManualTimeInput] = useState<{
-    field: 'pairingsTime' | 'startTime' | 'actualEndTime'
+    field:
+      | 'scheduledPairingsTime'
+      | 'pairingsTime'
+      | 'scheduledStartTime'
+      | 'startTime'
+      | 'actualEndTime'
     value: string
   } | null>(null)
 
@@ -77,9 +82,17 @@ export default function ActiveRace({ race }: Props) {
 
   // 記錄：公布配對
   async function handleMarkPairings(roundId: string) {
-    const updated = rounds.map((r) =>
-      r.id === roundId ? { ...r, pairingsTime: Date.now() } : r
+    const nowMs = Date.now()
+    let updated = rounds.map((r) =>
+      r.id === roundId ? { ...r, pairingsTime: nowMs } : r
     )
+
+    // 第一輪配對按下後，自動推算所有每一輪的「預計配對時間」與「預計開始時間」
+    const isFirstRound = rounds[0]?.id === roundId
+    if (isFirstRound) {
+      updated = computeAutoSchedule(updated, nowMs)
+    }
+
     await updateRaceRounds(race.id, updated)
   }
 
@@ -114,11 +127,23 @@ export default function ActiveRace({ race }: Props) {
   async function handleAddExtraRound() {
     const lastRound = rounds[rounds.length - 1]
     const nextNum = (lastRound?.roundNumber ?? 0) + 1
+
+    // 若上一輪已有預計時間，加賽也自動依序推算
+    let schedPairings: number | null = null
+    let schedStart: number | null = null
+    if (lastRound?.scheduledStartTime) {
+      const lastRoundEnd = lastRound.scheduledStartTime + (lastRound.roundMinutes || 25) * 60 * 1000
+      schedPairings = lastRoundEnd + 5 * 60 * 1000 // 5m turnaround
+      schedStart = schedPairings + 5 * 60 * 1000   // 5m prep
+    }
+
     const newRound: TournamentRound = {
       id: `extra-${nextNum}`,
       stage: 'swiss',
       roundNumber: nextNum,
       name: `R${nextNum} (加賽)`,
+      scheduledPairingsTime: schedPairings,
+      scheduledStartTime: schedStart,
       pairingsTime: null,
       startTime: null,
       scheduledEndTime: null,
@@ -171,8 +196,8 @@ export default function ActiveRace({ race }: Props) {
     const lines = [
       `【${race.name}】時間紀錄表`,
       `日期：${race.date}`,
-      '--------------------------------------------------------------------------------',
-      '輪次\t配對公布\t開始時間\t預計結束\t實際結束\tEoR時間\t輪長\t輪間時長',
+      '------------------------------------------------------------------------------------------------------------------------',
+      '輪次\t預計配對\t實際配對\t預計開始\t實際開始\t預計結束\t實際結束\tEoR時間\t輪長\t輪間時長',
     ]
 
     rounds.forEach((r, idx) => {
@@ -185,7 +210,9 @@ export default function ActiveRace({ race }: Props) {
         r.actualEndTime && nextR?.startTime ? nextR.startTime - r.actualEndTime : null
 
       lines.push(
-        `${r.name}\t${formatClock(r.pairingsTime)}\t${formatClock(r.startTime)}\t${formatClock(
+        `${r.name}\t${formatClock(r.scheduledPairingsTime)}\t${formatClock(r.pairingsTime)}\t${formatClock(
+          r.scheduledStartTime
+        )}\t${formatClock(r.startTime)}\t${formatClock(
           r.scheduledEndTime
         )}\t${formatClock(r.actualEndTime)}\t${formatEoR(eor)}\t${formatDuration(
           duration
@@ -407,7 +434,13 @@ export default function ActiveRace({ race }: Props) {
                 <th className="py-3.5 px-4 font-semibold sticky left-0 bg-white dark:bg-zinc-950 z-10 border-r border-zinc-200 dark:border-zinc-800">
                   輪次
                 </th>
+                <th className="py-3.5 px-4 font-semibold text-amber-600 dark:text-amber-400">
+                  預計配對
+                </th>
                 <th className="py-3.5 px-4 font-semibold">配對公布時間</th>
+                <th className="py-3.5 px-4 font-semibold text-amber-600 dark:text-amber-400">
+                  預計開始
+                </th>
                 <th className="py-3.5 px-4 font-semibold">開始時間</th>
                 <th className="py-3.5 px-4 font-semibold">預計結束 (+25m)</th>
                 <th className="py-3.5 px-4 font-semibold">實際結束時間</th>
@@ -496,7 +529,12 @@ export default function ActiveRace({ race }: Props) {
                       </div>
                     </td>
 
-                    {/* 配對公布時間 */}
+                    {/* 預計配對公布時間 (第一輪配對公布後自動推算) */}
+                    <td className="py-3.5 px-4 font-semibold text-amber-600 dark:text-amber-400">
+                      {formatClock(round.scheduledPairingsTime)}
+                    </td>
+
+                    {/* 實際配對公布時間 */}
                     <td className="py-3.5 px-4">
                       {round.pairingsTime ? (
                         <span className="text-zinc-800 dark:text-zinc-300 font-medium">{formatClock(round.pairingsTime)}</span>
@@ -510,7 +548,12 @@ export default function ActiveRace({ race }: Props) {
                       )}
                     </td>
 
-                    {/* 開始時間 */}
+                    {/* 預計開始時間 (第一輪配對公布後自動推算) */}
+                    <td className="py-3.5 px-4 font-semibold text-amber-600 dark:text-amber-400">
+                      {formatClock(round.scheduledStartTime)}
+                    </td>
+
+                    {/* 實際開始時間 */}
                     <td className="py-3.5 px-4">
                       {round.startTime ? (
                         <span className="text-zinc-900 dark:text-zinc-200 font-bold">
@@ -623,9 +666,11 @@ export default function ActiveRace({ race }: Props) {
                               })
                             }
                           >
-                            <option value="pairingsTime">配對</option>
-                            <option value="startTime">開始</option>
-                            <option value="actualEndTime">結束</option>
+                            <option value="scheduledPairingsTime">預計配對</option>
+                            <option value="pairingsTime">實際配對</option>
+                            <option value="scheduledStartTime">預計開始</option>
+                            <option value="startTime">實際開始</option>
+                            <option value="actualEndTime">實際結束</option>
                           </select>
                           <input
                             type="text"

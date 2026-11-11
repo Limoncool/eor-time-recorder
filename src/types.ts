@@ -6,8 +6,13 @@ export interface TournamentRound {
   roundNumber: number
   name: string                  // 例如 "R1", "R2", "8強賽", "4強賽", "決賽"
   
-  pairingsTime: number | null   // 配對公布時間 (Unix timestamp ms)
-  startTime: number | null      // 開始時間 (Unix timestamp ms)
+  // 預計時間 (第一輪配對公布後自動推算)
+  scheduledPairingsTime: number | null // 預計配對公布時間 (Unix timestamp ms)
+  scheduledStartTime: number | null    // 預計開始時間 (Unix timestamp ms)
+
+  // 實際記錄時間
+  pairingsTime: number | null   // 實際配對公布時間 (Unix timestamp ms)
+  startTime: number | null      // 實際開始時間 (Unix timestamp ms)
   scheduledEndTime: number | null // 預計結束時間 = startTime + roundMinutes * 60 * 1000
   actualEndTime: number | null  // 實際結束時間 (Unix timestamp ms)
   
@@ -31,6 +36,9 @@ export interface Tournament {
   rounds: TournamentRound[]
   createdAt: number             // Unix timestamp ms
   status: 'ongoing' | 'finished'
+  createdBy?: string            // 建立者的 Firebase UID
+  creatorEmail?: string         // 建立者的 Email
+  creatorName?: string          // 建立者顯示名稱
 }
 
 // 兼容舊格式
